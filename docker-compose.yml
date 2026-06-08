@@ -2,6 +2,11 @@
 # Runs the frontend and backend as separate containers on a shared network so
 # they can talk to each other, mirroring the Fargate production topology.
 #
+# AWS dependencies run as functional mock containers (MinIO stands in for S3),
+# so the whole stack runs fully offline. The SAME application code talks to the
+# mock here and to real AWS in production — the only difference is configuration
+# (e.g. unset S3_ENDPOINT to point the backend at real S3). See docs/aws-mocks.md.
+#
 #   docker compose up --build
 #
 # Then open http://localhost:8080 in a browser.
@@ -12,6 +17,14 @@ services:
       dockerfile: packages/backend/Dockerfile
     environment:
       PORT: "3000"
+      # --- AWS S3, served by the MinIO mock ---
+      # Presence of S3_ENDPOINT switches the S3 client to the mock; remove it to
+      # target real AWS S3 (credentials then come from the task's IAM role).
+      AWS_REGION: "us-east-1"
+      S3_ENDPOINT: "http://minio:9000"
+      S3_BUCKET: "app-bucket"
+      AWS_ACCESS_KEY_ID: "minioadmin"
+      AWS_SECRET_ACCESS_KEY: "minioadmin"
     ports:
       # Published so the browser (running on the host) can reach the API.
       - "3000:3000"
@@ -22,6 +35,45 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+    depends_on:
+      minio-setup:
+        condition: service_completed_successfully
+    networks:
+      - app
+
+  # Functional mock for AWS S3. Speaks the S3 API, so the app's AWS SDK client
+  # talks to it unchanged.
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    ports:
+      # 9000 = S3 API, 9001 = web console (handy for inspecting objects).
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - app
+
+  # One-shot job that creates the bucket the app expects, then exits. Waits for
+  # MinIO to accept connections instead of relying on an in-image healthcheck.
+  minio-setup:
+    image: minio/mc
+    depends_on:
+      - minio
+    environment:
+      S3_BUCKET: "app-bucket"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until mc alias set local http://minio:9000 minioadmin minioadmin; do
+          echo 'waiting for minio...'; sleep 1;
+        done
+        mc mb --ignore-existing "local/$${S3_BUCKET}"
     networks:
       - app
 
@@ -43,3 +95,6 @@ services:
 networks:
   app:
     driver: bridge
+
+volumes:
+  minio-data:

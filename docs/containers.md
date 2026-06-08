@@ -21,6 +21,9 @@ Then open <http://localhost:8080>.
 - **backend** — the Node HTTP server on host port `3000`, exposing the same
   routes as the Lambda handler plus a `/health` probe. CORS is open, so the
   browser can call it cross-origin.
+- **minio** / **minio-setup** — a functional mock for AWS S3 (plus a one-shot
+  bucket-creation job), so the stack runs fully offline. The same code talks to
+  real S3 in production by config only. See [aws-mocks.md](aws-mocks.md).
 
 ## 2. Single image (frontend + backend in one container)
 
