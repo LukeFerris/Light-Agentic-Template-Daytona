@@ -1,0 +1,52 @@
+packages/backend/src/index.ts
+  s_d047327204b65f::t_2425ce9503bb8a 6
+  s_d047327204b65f::t_98a7a32da48d3a 8
+  s_d047327204b65f::t_bb5c581186f1b0 30-33
+packages/backend/src/services/storageService.test.ts
+  s_d047327204b65f::t_280d61eb10a529 1-78
+packages/backend/src/services/aws/s3Client.ts
+  s_d047327204b65f::t_c8b63b4a57d03a 1-58
+docker/nginx.single.conf
+  s_d047327204b65f::t_d6d9d7d18cbc6b 14-17
+packages/backend/package.json
+  s_d047327204b65f::t_5728a62925761f 8
+  s_d047327204b65f::t_d91952d80eb357 13-15
+packages/backend/src/handlers/storage.ts
+  s_d047327204b65f::t_16fb4de9e51a5a 1,3-79
+  s_d047327204b65f::t_a5545a282a557e 2
+packages/backend/src/handlers/hello.ts
+  s_d047327204b65f::t_2f34fbb482b487 2
+packages/backend/src/services/storageService.ts
+  s_d047327204b65f::t_ccd792c0457053 1-68
+packages/backend/src/services/aws/s3Client.test.ts
+  s_d047327204b65f::t_e4809f5257f2ce 1-45
+docker-compose.yml
+  s_d047327204b65f::t_431a827b5fd5af 5-9,20-27,38-76
+  s_d047327204b65f::t_56c74a7538cf31 98-100
+docs/aws-mocks.md
+  s_d047327204b65f::t_3afc99d0a162bb 1-75
+packages/backend/src/handlers/storage.test.ts
+  s_d047327204b65f::t_9060ca9fdfc588 1-95
+packages/backend/src/index.test.ts
+  s_d047327204b65f::t_0696271ac8e447 1-52
+docs/containers.md
+  s_d047327204b65f::t_3c89301c67b1c2 24-26
+packages/backend/src/cors.ts
+  s_d047327204b65f::t_9c6e432f23e709 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "710f6f65a3e71bdd643540fda64888638de4bff3",
+  "prompts": {},
+  "sessions": {
+    "s_d047327204b65f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe32d4a2-bcee-46eb-b8d7-af14a83a882e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
