@@ -1,0 +1,14 @@
+# Keep the build context small and reproducible.
+**/node_modules
+**/dist
+**/build
+coverage
+.git
+.github
+.husky
+deployment/.terraform
+**/*.log
+.DS_Store
+.env
+.env.*
+*.tgz

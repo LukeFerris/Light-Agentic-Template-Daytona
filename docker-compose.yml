@@ -1,0 +1,45 @@
+# Full-stack local/dev (and Daytona DinD) definition.
+# Runs the frontend and backend as separate containers on a shared network so
+# they can talk to each other, mirroring the Fargate production topology.
+#
+#   docker compose up --build
+#
+# Then open http://localhost:8080 in a browser.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    environment:
+      PORT: "3000"
+    ports:
+      # Published so the browser (running on the host) can reach the API.
+      - "3000:3000"
+    healthcheck:
+      test:
+        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    environment:
+      # URL the browser uses to reach the backend. CORS is open on the backend.
+      API_URL: "http://localhost:3000"
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
