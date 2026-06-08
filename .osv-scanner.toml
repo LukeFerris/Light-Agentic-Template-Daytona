@@ -1,0 +1,5 @@
+# OSV-Scanner configuration
+# Add vulnerability IDs to ignore here if needed
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# reason = "Not applicable because..."

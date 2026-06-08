@@ -1,0 +1,76 @@
+{
+  "name": "light-agentic-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Light fullstack TypeScript template with React frontend and AWS Lambda backend",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "check-staged-coverage": "node scripts/check-staged-coverage.mjs",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "build": "yarn workspace frontend build && yarn workspace backend build",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "dev": "yarn workspace frontend dev",
+    "deploy": "bash scripts/deploy/deploy-all.sh",
+    "deploy:frontend": "bash scripts/deploy/deploy-frontend.sh",
+    "deploy:api": "bash scripts/deploy/deploy-api.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "*",
+    "@secretlint/secretlint-rule-preset-recommend": "*",
+    "@types/node": "*",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "@vitest/coverage-v8": "*",
+    "eslint": "*",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^62.7.0",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-sonarjs": "^4.0.0",
+    "globals": "*",
+    "husky": "*",
+    "lint-staged": "*",
+    "secretlint": "*",
+    "typescript": "*",
+    "typescript-eslint": "^8.56.0",
+    "vitest": "*"
+  },
+  "lint-staged": {
+    "package.json": [
+      "bash -c 'yarn build'",
+      "bash -c 'yarn test:coverage'"
+    ],
+    "**/*.ts": [
+      "npx secretlint",
+      "bash scripts/security/check-sast.sh",
+      "npx eslint --max-warnings 0 --no-warn-ignored",
+      "bash -c 'yarn build'",
+      "bash -c 'yarn test:coverage'",
+      "bash -c 'yarn check-staged-coverage'"
+    ],
+    "**/*.tsx": [
+      "npx secretlint",
+      "bash scripts/security/check-sast.sh",
+      "npx eslint --max-warnings 0 --no-warn-ignored",
+      "bash -c 'yarn build'",
+      "bash -c 'yarn test:coverage'",
+      "bash -c 'yarn check-staged-coverage'"
+    ],
+    "**/yarn.lock": [
+      "bash scripts/security/check-dependencies.sh"
+    ],
+    "**/package-lock.json": [
+      "bash scripts/security/check-dependencies.sh"
+    ]
+  },
+  "resolutions": {
+    "brace-expansion": "5.0.6",
+    "fast-uri": "3.1.2",
+    "postcss": "8.5.10"
+  }
+}
