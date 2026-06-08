@@ -1,0 +1,41 @@
+packages/backend/src/server.ts
+  s_bfcc476926f5cc::t_0e1152b2e654df 1-111
+packages/frontend/docker-entrypoint-config.sh
+  s_bfcc476926f5cc::t_ebe40f6cf25455 1-13
+packages/backend/Dockerfile
+  s_bfcc476926f5cc::t_c2c2c112cdb292 1-25
+docker/nginx.single.conf
+  s_bfcc476926f5cc::t_280bac9b65bdca 1-22
+docker/start.sh
+  s_bfcc476926f5cc::t_38c1c39e7f3a4d 1-25
+packages/backend/package.json
+  s_bfcc476926f5cc::t_e0764d984df8ef 8,10
+Dockerfile
+  s_bfcc476926f5cc::t_8efc9631191b4a 1-39
+docs/containers.md
+  s_bfcc476926f5cc::t_d4cb2a041dd165 1-49
+packages/frontend/nginx.conf
+  s_bfcc476926f5cc::t_fadef876ee272c 1-12
+docker-compose.yml
+  s_bfcc476926f5cc::t_1b16130cced46f 1-45
+.dockerignore
+  s_bfcc476926f5cc::t_0ba2cb06351457 1-14
+packages/frontend/Dockerfile
+  s_bfcc476926f5cc::t_09cd377f0d7713 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "62c9a5697d0609831e67fbad4a3e414429848af2",
+  "prompts": {},
+  "sessions": {
+    "s_bfcc476926f5cc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e062c68b-644f-467c-9f92-e72344988adc",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
