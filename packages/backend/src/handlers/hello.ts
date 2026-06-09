@@ -1,11 +1,6 @@
 import type { APIGatewayProxyResult } from 'aws-lambda';
+import { CORS_HEADERS } from '../cors';
 import { getHelloMessage } from '../services/helloService';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-};
 
 /**
  * Handles the hello REST endpoint.

@@ -5,12 +5,14 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --format=cjs --external:@aws-sdk/*",
-    "build:server": "esbuild src/server.ts --bundle --platform=node --target=node20 --outfile=dist/server.js --format=cjs --external:@aws-sdk/*",
+    "build:server": "esbuild src/server.ts --bundle --platform=node --target=node20 --outfile=dist/server.js --format=cjs",
     "type-check": "tsc --noEmit",
     "start": "node dist/server.js",
     "dev": "tsc --watch"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@aws-sdk/client-s3": "*"
+  },
   "devDependencies": {
     "@types/aws-lambda": "*",
     "@types/node": "*",

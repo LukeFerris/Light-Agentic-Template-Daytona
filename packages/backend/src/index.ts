@@ -3,13 +3,9 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from 'aws-lambda';
+import { CORS_HEADERS } from './cors';
 import { handleHello } from './handlers/hello';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-};
+import { handleStorage } from './handlers/storage';
 
 /**
  * AWS Lambda handler that routes REST API requests.
@@ -29,6 +25,10 @@ export async function handler(
 
   if (path === '/hello' || path === '/prod/hello') {
     return handleHello(context.awsRequestId);
+  }
+
+  if (path === '/storage' || path === '/prod/storage') {
+    return handleStorage(event);
   }
 
   return {
