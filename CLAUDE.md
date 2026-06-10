@@ -14,8 +14,10 @@ Light Agentic Template - A lightweight fullstack TypeScript template with React 
 ```bash
 yarn install          # Install dependencies
 yarn build            # Build all packages
-yarn test             # Run tests
-yarn test:coverage    # Run tests with coverage
+yarn test             # Run unit tests (vitest)
+yarn test:coverage    # Run unit tests with coverage
+yarn e2e              # Run Playwright e2e tests against the containerized app
+yarn e2e:install      # One-time: install the Chromium build for Playwright
 yarn dev              # Start frontend dev server
 yarn type-check       # TypeScript type checking
 yarn lint             # Run ESLint
@@ -28,6 +30,17 @@ yarn deploy           # Deploy everything (infrastructure + frontend + API)
 yarn deploy:frontend  # Deploy frontend only (build + S3 upload + CloudFront invalidation)
 yarn deploy:api       # Deploy API only (build + Lambda update)
 ```
+
+## Testing
+
+- **Unit tests** (`*.test.ts`) live next to the code under `packages/` and run
+  with vitest. Coverage thresholds are enforced at commit time.
+- **E2e tests** (`*.spec.ts`) live in the top-level `e2e/` directory and run
+  with Playwright against the containerized app. Write them as part of TDD,
+  alongside the feature. See [docs/e2e-testing.md](docs/e2e-testing.md) for
+  conventions, the failure-artifact setup, and Daytona-loop alignment.
+- `@playwright/test` is pinned (not `*`) so it matches the browsers baked into
+  the Daytona base image — see the doc before bumping it.
 
 ## Working Guidelines
 

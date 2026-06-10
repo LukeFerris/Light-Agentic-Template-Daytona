@@ -50,3 +50,9 @@ expects. The same handler therefore runs unchanged on Lambda and in a container.
   reached directly, nothing else to change.
 - **single image**: also add a matching `location` block in
   `docker/nginx.single.conf` so nginx proxies the new path to the backend.
+
+## Testing the containers end to end
+
+Playwright e2e tests drive these containers in a real browser and assert on
+behaviour. `yarn e2e` brings the compose stack up (or reuses a running one) and
+runs the suite. See [e2e-testing.md](e2e-testing.md).

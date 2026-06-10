@@ -10,6 +10,11 @@ out/
 # Test coverage
 coverage/
 
+# Playwright e2e artifacts (traces/screenshots/videos/junit + html report)
+test-results/
+playwright-report/
+.playwright/
+
 # IDE
 .idea/
 .vscode/
