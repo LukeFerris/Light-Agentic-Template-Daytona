@@ -31,17 +31,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Lambda
-.aws-sam/
-samconfig.toml
-
 # Terraform
 deployment/.terraform/
 deployment/.terraform.lock.hcl
 deployment/terraform.tfstate
 deployment/terraform.tfstate.backup
 deployment/terraform.tfvars
-deployment/lambda_payload.zip
 deployment/.deploy.lock
 
 # Pattern check stamp (written by /check-patterns, consumed by pre-commit)

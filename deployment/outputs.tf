@@ -8,29 +8,34 @@ output "environment_id" {
   value       = local.environment_id
 }
 
-output "frontend_url" {
-  description = "CloudFront URL for the frontend"
-  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+output "app_url" {
+  description = "Public URL for the application (frontend + same-origin API), served by the ALB"
+  value       = "http://${aws_lb.main.dns_name}"
 }
 
-output "api_url" {
-  description = "API Gateway URL for the backend"
-  value       = aws_api_gateway_stage.prod.invoke_url
+output "alb_dns_name" {
+  description = "DNS name of the application load balancer"
+  value       = aws_lb.main.dns_name
 }
 
-output "s3_bucket_name" {
-  description = "S3 bucket name for frontend assets"
-  value       = aws_s3_bucket.frontend.id
+output "ecr_frontend_url" {
+  description = "ECR repository URL for the frontend image"
+  value       = aws_ecr_repository.frontend.repository_url
 }
 
-output "lambda_function_name" {
-  description = "Lambda function name"
-  value       = aws_lambda_function.api.function_name
+output "ecr_backend_url" {
+  description = "ECR repository URL for the backend image"
+  value       = aws_ecr_repository.backend.repository_url
 }
 
-output "cloudfront_distribution_id" {
-  description = "CloudFront distribution ID"
-  value       = aws_cloudfront_distribution.frontend.id
+output "cluster_name" {
+  description = "ECS cluster name"
+  value       = aws_ecs_cluster.main.name
+}
+
+output "app_bucket_name" {
+  description = "S3 bucket the application uses at runtime"
+  value       = aws_s3_bucket.app.bucket
 }
 
 output "aws_region" {

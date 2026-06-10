@@ -24,10 +24,13 @@ yarn lint             # Run ESLint
 ## Deployment Commands
 
 ```bash
-yarn deploy           # Deploy everything (infrastructure + frontend + API)
-yarn deploy:frontend  # Deploy frontend only (build + S3 upload + CloudFront invalidation)
-yarn deploy:api       # Deploy API only (build + Lambda update)
+yarn deploy           # Build + smoke-test + push images, then stand up the full app on AWS Fargate
+yarn teardown         # Remove every AWS resource the deploy created
 ```
+
+Production runs the frontend and backend as containers on AWS Fargate behind an
+ALB (see [docs/deploy.md](docs/deploy.md)). Local/dev runs the same images via
+`docker compose up` (see [docs/containers.md](docs/containers.md)).
 
 ## Working Guidelines
 
