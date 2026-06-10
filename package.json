@@ -14,7 +14,7 @@
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "build": "yarn workspace frontend build && yarn workspace backend build",
     "lint": "eslint . --ext .ts,.tsx",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit -p packages/backend/tsconfig.json && tsc --noEmit -p packages/frontend/tsconfig.json",
     "dev": "yarn workspace frontend dev",
     "deploy": "bash scripts/deploy/deploy-fargate.sh",
     "teardown": "bash scripts/deploy/teardown.sh"

@@ -1,4 +1,9 @@
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+  type OutgoingHttpHeaders,
+} from 'node:http';
 import { randomUUID } from 'node:crypto';
 import type {
   APIGatewayProxyEvent,
@@ -88,10 +93,12 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
       const event = toProxyEvent(req, body);
       const result: APIGatewayProxyResult = await handler(event, makeContext());
 
-      const headers: Record<string, string | number | boolean> = {
-        'Content-Type': 'application/json',
-        ...(result.headers ?? {}),
-      };
+      // API Gateway header values may be boolean; Node's writeHead only accepts
+      // string/number/string[], so coerce booleans to strings.
+      const headers: OutgoingHttpHeaders = { 'Content-Type': 'application/json' };
+      for (const [key, value] of Object.entries(result.headers ?? {})) {
+        headers[key] = typeof value === 'boolean' ? String(value) : value;
+      }
       res.writeHead(result.statusCode, headers);
       res.end(result.body ?? '');
     } catch (err) {
