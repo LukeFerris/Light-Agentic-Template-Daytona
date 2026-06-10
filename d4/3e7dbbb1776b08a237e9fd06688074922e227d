@@ -1,0 +1,36 @@
+scripts/deploy/teardown.sh
+  s_2c20e200d1c3fc::t_34666962a318d1 1-68
+deployment/main.tf
+  s_2c20e200d1c3fc::t_1504ecc59b7b7b 48-59,77-80,82-83,86-90,93,95-102,105-112,115-116,118-122,125-131,134-138,141-143,146-155,158-161,164-166,169-175,177-184,188-194,196-213,217-228,230-235,238-245,248-252,256-262,265-279,282-302,304-308,311-314,316-331,334-336,338-341,344-345,347-355,357,359-391,394-395,397-407,410-413,416-417,420-453,455-456,458-468,471-475,477
+deployment/variables.tf
+  s_2c20e200d1c3fc::t_20786894df6f94 24-38,40,43-46,48,51-52,54,57-72
+package.json
+  s_2c20e200d1c3fc::t_9d14aee2c7fc18 19-20
+  s_2c20e200d1c3fc::t_47dc1e064a3db4 5
+scripts/deploy/deploy-fargate.sh
+  s_2c20e200d1c3fc::t_98e032fa7f5c90 1-199
+docs/containers.md
+  s_2c20e200d1c3fc::t_da5dcc8254db98 7-8
+CLAUDE.md
+  s_2c20e200d1c3fc::t_debda633c2a22c 27-28,31-33
+deployment/outputs.tf
+  s_2c20e200d1c3fc::t_faead403c155d4 11-13,16-18,21-23,26-28,31-38
+docs/deploy.md
+  s_2c20e200d1c3fc::t_b37c7e336e3bbc 1-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d43e7dbbb1776b08a237e9fd06688074922e227d",
+  "prompts": {},
+  "sessions": {
+    "s_2c20e200d1c3fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55dd575b-cbcb-4bec-9ca0-0b5264409d33",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
