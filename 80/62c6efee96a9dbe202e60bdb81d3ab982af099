@@ -1,0 +1,25 @@
+package.json
+  s_2c20e200d1c3fc::t_bd81bdea221d6c 17
+packages/backend/tsconfig.json
+  s_2c20e200d1c3fc::t_a0d63988f9b904 7
+  s_2c20e200d1c3fc::t_f6a18fb0e28607 14
+packages/backend/src/server.ts
+  s_2c20e200d1c3fc::t_591e621b67db81 96-101
+  s_2c20e200d1c3fc::t_de499bec591df9 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8062c6efee96a9dbe202e60bdb81d3ab982af099",
+  "prompts": {},
+  "sessions": {
+    "s_2c20e200d1c3fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55dd575b-cbcb-4bec-9ca0-0b5264409d33",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
