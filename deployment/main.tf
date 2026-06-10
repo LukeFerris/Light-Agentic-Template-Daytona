@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.0"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.0"
@@ -49,6 +45,18 @@ locals {
   project_name    = var.project_name != "" ? var.project_name : local.auto_project_name
   environment_id  = var.environment_id != "" ? var.environment_id : random_id.environment.hex
   resource_prefix = "${local.project_name}-${local.environment_id}"
+
+  # Until the deploy script builds and pushes the real images, fall back to a
+  # tiny public image so `terraform apply` can stand up the stack. The normal
+  # deploy path always supplies the pushed image refs, so this is only used by a
+  # bare first apply / validate.
+  backend_image  = var.backend_image != "" ? var.backend_image : "public.ecr.aws/docker/library/busybox:latest"
+  frontend_image = var.frontend_image != "" ? var.frontend_image : "public.ecr.aws/docker/library/busybox:latest"
+
+  # API routes served by the backend. The ALB forwards these to the backend
+  # target group; everything else falls through to the frontend (the SPA). The
+  # browser therefore reaches the API same-origin, so no CORS config is needed.
+  backend_path_patterns = ["/hello", "/hello/*", "/storage", "/storage/*", "/health"]
 }
 
 resource "terraform_data" "persist_env_vars" {
@@ -66,188 +74,56 @@ resource "terraform_data" "persist_env_vars" {
   }
 }
 
-# --- IAM Role for Lambda ---
+# --- Networking: reuse the account's default VPC ---
+# Fargate tasks and the ALB run in the default VPC's public subnets with a public
+# IP, so they can pull images from ECR and reach real AWS services (e.g. S3)
+# without provisioning a NAT gateway.
 
-resource "aws_iam_role" "lambda_exec" {
-  name = "${local.resource_prefix}-lambda-exec"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
+data "aws_vpc" "default" {
+  default = true
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_basic" {
-  role       = aws_iam_role.lambda_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-# --- Lambda Function ---
-
-data "archive_file" "lambda_zip" {
-  type        = "zip"
-  source_file = "${path.module}/../packages/backend/dist/index.js"
-  output_path = "${path.module}/lambda_payload.zip"
-}
-
-resource "aws_lambda_function" "api" {
-  function_name    = "${local.resource_prefix}-api"
-  filename         = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-  handler          = "index.handler"
-  runtime          = var.lambda_runtime
-  memory_size      = var.lambda_memory_size
-  timeout          = var.lambda_timeout
-  role             = aws_iam_role.lambda_exec.arn
-}
-
-# --- API Gateway (REST) ---
-
-resource "aws_api_gateway_rest_api" "api" {
-  name        = "${local.resource_prefix}-api"
-  description = "API Gateway for ${local.project_name}"
-}
-
-resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
-  path_part   = "{proxy+}"
-}
-
-resource "aws_api_gateway_method" "proxy" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "proxy" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.proxy.id
-  http_method             = aws_api_gateway_method.proxy.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api.invoke_arn
-}
-
-# Root resource methods
-resource "aws_api_gateway_method" "root" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_rest_api.api.root_resource_id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "root" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_rest_api.api.root_resource_id
-  http_method             = aws_api_gateway_method.root.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api.invoke_arn
-}
-
-# CORS OPTIONS method on proxy
-resource "aws_api_gateway_method" "proxy_options" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "OPTIONS"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "proxy_options" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.proxy_options.http_method
-  type        = "MOCK"
-
-  request_templates = {
-    "application/json" = "{\"statusCode\": 200}"
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
-resource "aws_api_gateway_method_response" "proxy_options" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.proxy_options.http_method
-  status_code = "200"
+# --- ECR repositories (one per application image) ---
 
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Origin"  = true
+resource "aws_ecr_repository" "frontend" {
+  name                 = "${local.resource_prefix}-frontend"
+  image_tag_mutability = "IMMUTABLE"
+  force_delete         = true
+
+  image_scanning_configuration {
+    scan_on_push = true
   }
 }
 
-resource "aws_api_gateway_integration_response" "proxy_options" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.proxy_options.http_method
-  status_code = aws_api_gateway_method_response.proxy_options.status_code
+resource "aws_ecr_repository" "backend" {
+  name                 = "${local.resource_prefix}-backend"
+  image_tag_mutability = "IMMUTABLE"
+  force_delete         = true
 
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'"
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  image_scanning_configuration {
+    scan_on_push = true
   }
 }
 
-# Deploy the API
-resource "aws_api_gateway_deployment" "api" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
+# --- S3 bucket the application uses at runtime (real S3 in place of the MinIO
+# mock that stands in for it under docker compose) ---
 
-  depends_on = [
-    aws_api_gateway_integration.proxy,
-    aws_api_gateway_integration.root,
-    aws_api_gateway_integration.proxy_options,
-  ]
+resource "aws_s3_bucket" "app" {
+  bucket = "${local.resource_prefix}-app"
 
-  triggers = {
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.proxy.id,
-      aws_api_gateway_method.proxy.id,
-      aws_api_gateway_integration.proxy.id,
-      aws_api_gateway_method.root.id,
-      aws_api_gateway_integration.root.id,
-    ]))
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
+  # Allow teardown to remove the bucket even if it still holds objects.
+  force_destroy = true
 }
 
-resource "aws_api_gateway_stage" "prod" {
-  deployment_id = aws_api_gateway_deployment.api.id
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  stage_name    = var.api_stage_name
-}
-
-# Lambda permission for API Gateway
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.api.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*"
-}
-
-# --- S3 Bucket for Frontend ---
-
-resource "aws_s3_bucket" "frontend" {
-  bucket = "${local.resource_prefix}-frontend"
-}
-
-resource "aws_s3_bucket_public_access_block" "frontend" {
-  bucket = aws_s3_bucket.frontend.id
+resource "aws_s3_bucket_public_access_block" "app" {
+  bucket = aws_s3_bucket.app.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -255,90 +131,348 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
   restrict_public_buckets = true
 }
 
-# --- CloudFront Distribution ---
+# --- CloudWatch log groups ---
 
-resource "aws_cloudfront_origin_access_control" "frontend" {
-  name                              = "${local.resource_prefix}-oac"
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
+resource "aws_cloudwatch_log_group" "frontend" {
+  name              = "/ecs/${local.resource_prefix}/frontend"
+  retention_in_days = 7
 }
 
-resource "aws_cloudfront_distribution" "frontend" {
-  enabled             = true
-  default_root_object = "index.html"
-  comment             = "${local.project_name} frontend"
+resource "aws_cloudwatch_log_group" "backend" {
+  name              = "/ecs/${local.resource_prefix}/backend"
+  retention_in_days = 7
+}
 
-  origin {
-    domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id                = "s3-frontend"
-    origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
-  }
+# --- IAM roles ---
 
-  default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-    cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "s3-frontend"
-    viewer_protocol_policy = "redirect-to-https"
-    compress               = true
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
+data "aws_iam_policy_document" "ecs_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
     }
-
-    min_ttl     = 0
-    default_ttl = 3600
-    max_ttl     = 86400
-  }
-
-  # SPA fallback: serve index.html for 403/404
-  custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true
   }
 }
 
-# S3 bucket policy to allow CloudFront access
-resource "aws_s3_bucket_policy" "frontend" {
-  bucket = aws_s3_bucket.frontend.id
+# Execution role: lets ECS pull images from ECR and write container logs.
+resource "aws_iam_role" "task_execution" {
+  name               = "${local.resource_prefix}-exec"
+  assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
+}
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AllowCloudFrontServicePrincipal"
-        Effect = "Allow"
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
-        }
-        Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.frontend.arn}/*"
-        Condition = {
-          StringEquals = {
-            "AWS:SourceArn" = aws_cloudfront_distribution.frontend.arn
-          }
+resource "aws_iam_role_policy_attachment" "task_execution" {
+  role       = aws_iam_role.task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# Task role: the identity the backend container assumes at runtime. Grants
+# access to the app S3 bucket via the standard credential provider chain, so the
+# app talks to real S3 with no endpoint/credentials config.
+resource "aws_iam_role" "task" {
+  name               = "${local.resource_prefix}-task"
+  assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
+}
+
+data "aws_iam_policy_document" "task_s3" {
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.app.arn]
+  }
+  statement {
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.app.arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "task_s3" {
+  name   = "${local.resource_prefix}-s3"
+  role   = aws_iam_role.task.id
+  policy = data.aws_iam_policy_document.task_s3.json
+}
+
+# --- Security groups ---
+
+resource "aws_security_group" "alb" {
+  name        = "${local.resource_prefix}-alb"
+  description = "Public ingress to the application load balancer"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "HTTP from the internet"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "service" {
+  name        = "${local.resource_prefix}-svc"
+  description = "Fargate service tasks"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description     = "Frontend port from the ALB"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  ingress {
+    description     = "Backend port from the ALB"
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  # Allow tasks in this group to reach each other (service-to-service traffic via
+  # Cloud Map service discovery).
+  ingress {
+    description = "Intra-service traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# --- Application Load Balancer ---
+
+resource "aws_lb" "main" {
+  name               = "${local.resource_prefix}-alb"
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = data.aws_subnets.default.ids
+}
+
+resource "aws_lb_target_group" "frontend" {
+  name        = "${local.resource_prefix}-fe"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.default.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/"
+    matcher             = "200"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    interval            = 15
+    timeout             = 5
+  }
+}
+
+resource "aws_lb_target_group" "backend" {
+  name        = "${local.resource_prefix}-be"
+  port        = 3000
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.default.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/health"
+    matcher             = "200"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    interval            = 15
+    timeout             = 5
+  }
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  # Default: serve the frontend SPA.
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
+  }
+}
+
+# Route the API paths to the backend; everything else falls through to the SPA.
+resource "aws_lb_listener_rule" "backend" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+
+  condition {
+    path_pattern {
+      values = local.backend_path_patterns
+    }
+  }
+}
+
+# --- ECS cluster ---
+
+resource "aws_ecs_cluster" "main" {
+  name = local.resource_prefix
+}
+
+# --- Service discovery (Cloud Map) ---
+# Registers the backend as `backend.<project>.local` inside the VPC, giving the
+# frontend (and any future service) a stable internal name to reach it by.
+
+resource "aws_service_discovery_private_dns_namespace" "main" {
+  name        = "${local.project_name}.local"
+  description = "Service discovery for ${local.project_name}"
+  vpc         = data.aws_vpc.default.id
+}
+
+resource "aws_service_discovery_service" "backend" {
+  name = "backend"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.main.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+}
+
+# --- Backend Fargate service ---
+
+resource "aws_ecs_task_definition" "backend" {
+  family                   = "${local.resource_prefix}-backend"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = var.backend_cpu
+  memory                   = var.backend_memory
+  execution_role_arn       = aws_iam_role.task_execution.arn
+  task_role_arn            = aws_iam_role.task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "backend"
+      image     = local.backend_image
+      essential = true
+      portMappings = [
+        { containerPort = 3000, protocol = "tcp" }
+      ]
+      environment = [
+        # No S3_ENDPOINT -> the app targets real AWS S3 (see s3Client.ts). The
+        # task role supplies credentials.
+        { name = "AWS_REGION", value = var.aws_region },
+        { name = "S3_BUCKET", value = aws_s3_bucket.app.bucket },
+        { name = "PORT", value = "3000" }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.backend.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "backend"
         }
       }
-    ]
-  })
+    }
+  ])
+}
+
+resource "aws_ecs_service" "backend" {
+  name            = "backend"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.backend.arn
+  desired_count   = var.desired_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.service.id]
+    assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.backend.arn
+    container_name   = "backend"
+    container_port   = 3000
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.backend.arn
+  }
+
+  depends_on = [aws_lb_listener.http]
+}
+
+# --- Frontend Fargate service ---
+
+resource "aws_ecs_task_definition" "frontend" {
+  family                   = "${local.resource_prefix}-frontend"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = var.frontend_cpu
+  memory                   = var.frontend_memory
+  execution_role_arn       = aws_iam_role.task_execution.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "frontend"
+      image     = local.frontend_image
+      essential = true
+      portMappings = [
+        { containerPort = 80, protocol = "tcp" }
+      ]
+      environment = [
+        # Empty API_URL -> the browser calls the API same-origin through the
+        # ALB, which routes the API paths to the backend service.
+        { name = "API_URL", value = "" }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.frontend.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "frontend"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "frontend" {
+  name            = "frontend"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.frontend.arn
+  desired_count   = var.desired_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.service.id]
+    assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend.arn
+    container_name   = "frontend"
+    container_port   = 80
+  }
+
+  depends_on = [aws_lb_listener.http]
 }

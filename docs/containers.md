@@ -4,6 +4,8 @@ The app is container-first. There are two ways to run the full stack, both
 producing the same browser-reachable app. These are the artifacts Daytona (DinD)
 and AWS Fargate consume.
 
+> Production promotes these same images to AWS Fargate — see [deploy.md](deploy.md).
+
 ## 1. docker-compose (separate containers)
 
 Runs the frontend and backend as two containers on a shared network, mirroring

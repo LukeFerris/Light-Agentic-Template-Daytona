@@ -2,7 +2,7 @@
   "name": "light-agentic-template",
   "version": "1.0.0",
   "private": true,
-  "description": "Light fullstack TypeScript template with React frontend and AWS Lambda backend",
+  "description": "Light fullstack TypeScript template with React frontend and a containerized Node backend, deployed to AWS Fargate",
   "workspaces": [
     "packages/*"
   ],
@@ -16,9 +16,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "dev": "yarn workspace frontend dev",
-    "deploy": "bash scripts/deploy/deploy-all.sh",
-    "deploy:frontend": "bash scripts/deploy/deploy-frontend.sh",
-    "deploy:api": "bash scripts/deploy/deploy-api.sh"
+    "deploy": "bash scripts/deploy/deploy-fargate.sh",
+    "teardown": "bash scripts/deploy/teardown.sh"
   },
   "devDependencies": {
     "@eslint/js": "*",

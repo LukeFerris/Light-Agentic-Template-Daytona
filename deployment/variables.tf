@@ -21,26 +21,53 @@ variable "project_name" {
   }
 }
 
-variable "lambda_runtime" {
-  description = "Lambda runtime"
+# --- Container images ---
+# The deploy script builds and pushes the immutable application images to the
+# ECR repositories created by this stack, then re-applies with the pushed image
+# references so Fargate runs the exact artifacts that were smoke-tested. Left
+# empty, the ECS services are created with a placeholder so a first `terraform
+# apply` (before any image exists) can stand up the rest of the stack.
+
+variable "frontend_image" {
+  description = "Fully-qualified frontend image reference (ECR repo URL + tag) to run on Fargate. Set by the deploy script after build+push."
   type        = string
-  default     = "nodejs20.x"
+  default     = ""
 }
 
-variable "lambda_memory_size" {
-  description = "Lambda memory in MB"
-  type        = number
-  default     = 128
-}
-
-variable "lambda_timeout" {
-  description = "Lambda timeout in seconds"
-  type        = number
-  default     = 10
-}
-
-variable "api_stage_name" {
-  description = "API Gateway stage name"
+variable "backend_image" {
+  description = "Fully-qualified backend image reference (ECR repo URL + tag) to run on Fargate. Set by the deploy script after build+push."
   type        = string
-  default     = "prod"
+  default     = ""
+}
+
+# --- Fargate task sizing ---
+
+variable "backend_cpu" {
+  description = "Fargate CPU units for the backend task (256 = 0.25 vCPU)"
+  type        = number
+  default     = 256
+}
+
+variable "backend_memory" {
+  description = "Fargate memory (MB) for the backend task"
+  type        = number
+  default     = 512
+}
+
+variable "frontend_cpu" {
+  description = "Fargate CPU units for the frontend task (256 = 0.25 vCPU)"
+  type        = number
+  default     = 256
+}
+
+variable "frontend_memory" {
+  description = "Fargate memory (MB) for the frontend task"
+  type        = number
+  default     = 512
+}
+
+variable "desired_count" {
+  description = "Number of running tasks per service"
+  type        = number
+  default     = 1
 }
