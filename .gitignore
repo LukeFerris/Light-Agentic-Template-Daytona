@@ -47,5 +47,8 @@ deployment/.deploy.lock
 # Pattern check stamp (written by /check-patterns, consumed by pre-commit)
 .patterns-checked
 
+# Daytona post-commit loop run artifacts (reports, logs, Playwright traces)
+.daytona/
+
 # Misc
 *.tgz
