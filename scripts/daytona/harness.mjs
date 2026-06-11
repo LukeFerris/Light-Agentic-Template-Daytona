@@ -71,8 +71,11 @@ const MANIFESTS = [
   'packages/frontend/package.json',
 ];
 
-const CPU = Number(process.env.DAYTONA_CPU ?? 2);
-const MEMORY = Number(process.env.DAYTONA_MEMORY ?? 4);
+// 1 vCPU / 2 GiB / 5 GiB is the resource shape the spike proved places reliably
+// on Daytona's shared runners; larger boxes intermittently get "No available
+// runners". Override per environment if you have dedicated/self-hosted runners.
+const CPU = Number(process.env.DAYTONA_CPU ?? 1);
+const MEMORY = Number(process.env.DAYTONA_MEMORY ?? 2);
 const DISK = Number(process.env.DAYTONA_DISK ?? 5);
 const WORKDIR = '/app';
 
@@ -151,9 +154,18 @@ function parseJunit(xml) {
   return { tests, failures, errors, passed: failures === 0 && errors === 0 && tests > 0 };
 }
 
-/** Boot the sandbox, retrying the intermittent "No available runners" placement error. */
+/**
+ * Boot the sandbox, retrying the "No available runners" placement error.
+ *
+ * A freshly-baked snapshot has to be pulled and warmed onto a runner before it
+ * can be scheduled, so the first boot after a (re)bake can be rejected for a
+ * minute or two. The spike found ~20s of retry isn't enough — be patient.
+ * Measured here: a cold, just-baked snapshot took ~4–5 min of retries to place;
+ * once warm it boots in ~1s. Budget via DAYTONA_BOOT_RETRY_SECONDS (default 600).
+ */
 async function createSandbox(daytona, name, summary) {
-  const MAX_ATTEMPTS = 5;
+  const budgetMs = Number(process.env.DAYTONA_BOOT_RETRY_SECONDS ?? 600) * 1000;
+  const deadline = ms() + budgetMs;
   for (let attempt = 1; ; attempt++) {
     try {
       const sandbox = await daytona.create(
@@ -164,9 +176,12 @@ async function createSandbox(daytona, name, summary) {
       return sandbox;
     } catch (e) {
       const transient = /no available runners/i.test(e.message ?? '');
-      if (!transient || attempt >= MAX_ATTEMPTS) throw e;
-      const backoff = 2000 * attempt;
-      console.warn(`[sandbox] "${e.message}" — retry ${attempt}/${MAX_ATTEMPTS - 1} in ${backoff}ms`);
+      if (!transient || ms() >= deadline) throw e;
+      const backoff = Math.min(15000, 3000 * attempt); // ramp to 15s, then hold
+      console.warn(
+        `[sandbox] "${e.message}" — retry ${attempt} in ${backoff}ms ` +
+          `(${Math.round((deadline - ms()) / 1000)}s budget left; snapshot warming)`,
+      );
       await new Promise((r) => setTimeout(r, backoff));
     }
   }

@@ -20,10 +20,15 @@ yarn daytona:loop             # runs the loop for HEAD
 yarn daytona:loop --commit <sha>   # or a specific commit
 ```
 
-First run bakes the base snapshot (a few minutes, one-time); subsequent runs
-reuse it and complete in seconds. Output: a `<daytona-loop-result>` block on
-stdout plus a full `summary.json` and all artifacts under
-`.daytona/runs/<runId>/` (gitignored).
+First run bakes the base snapshot **and** has to wait for it to warm onto a
+runner — measured at ~4–5 min of "No available runners" retries before the first
+boot, which the harness rides out automatically. Once warm, the same snapshot
+boots in ~1s and a full pass/fail cycle is ~10–25s. Output: a
+`<daytona-loop-result>` block on stdout plus a full `summary.json` and all
+artifacts under `.daytona/runs/<runId>/` (gitignored).
+
+Measured end-to-end (this template, 1 vCPU / 2 GiB): cold first boot ~265s
+(snapshot warming), warm boot ~1.3s, in-sandbox build + boot + unit + e2e ~7–20s.
 
 ### As a real post-commit hook (opt-in)
 
@@ -92,10 +97,19 @@ artifact.
 |---|---|---|
 | `DAYTONA_API_KEY` | — | **Required.** Daytona API key. |
 | `DAYTONA_API_URL` | SDK default | Override the API endpoint. |
-| `DAYTONA_CPU` / `DAYTONA_MEMORY` / `DAYTONA_DISK` | `2` / `4` / `5` | Snapshot resources. Free-tier runners reject large boxes — drop to `1`/`2`/`5` if you hit "No available runners". |
+| `DAYTONA_CPU` / `DAYTONA_MEMORY` / `DAYTONA_DISK` | `1` / `2` / `5` | Snapshot resources. This is the shape the spike proved places reliably; larger boxes intermittently get "No available runners". |
+| `DAYTONA_BOOT_RETRY_SECONDS` | `600` | How long to retry "No available runners" while a freshly-baked snapshot warms onto a runner. |
 | `REBUILD_SNAPSHOT` | off | Force a fresh base snapshot. |
 | `KEEP_SANDBOX` | off | Leave the sandbox running for debugging. |
 | `DAYTONA_POST_COMMIT` | off | Enable the `.husky/post-commit` loop. |
+
+> **"No available runners".** This is Daytona's #1 operational risk (see the
+> spike). It is intermittent and applies to *custom snapshots* specifically — the
+> default image always places instantly. The harness rides it out with a patient
+> retry budget; a cold snapshot can take several minutes to first place, then
+> boots in ~1s thereafter. The `us` region is not available to every org; the
+> harness lets Daytona auto-place rather than pinning a region. For predictable
+> capacity, self-host a runner.
 
 ## Reading a failure report
 
