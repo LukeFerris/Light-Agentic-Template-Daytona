@@ -1,0 +1,33 @@
+.gitignore
+  s_411311e33bac87::t_238adefcef8112 13-17
+.dockerignore
+  s_411311e33bac87::t_238adefcef8112 6-7
+docs/e2e-testing.md
+  s_411311e33bac87::t_238adefcef8112 1-88
+e2e/api.spec.ts
+  s_411311e33bac87::t_238adefcef8112 1-35
+docs/containers.md
+  s_411311e33bac87::t_238adefcef8112 55-60
+vitest.config.ts
+  s_411311e33bac87::t_238adefcef8112 1,5-7
+e2e/home.spec.ts
+  s_411311e33bac87::t_238adefcef8112 1-31
+playwright.config.ts
+  s_411311e33bac87::t_238adefcef8112 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "eb69daf46f7d0c64995c1d54601246dd16cd0af6",
+  "prompts": {},
+  "sessions": {
+    "s_411311e33bac87": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "02fb57a1-f6a6-45ce-a38e-145952844555",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
