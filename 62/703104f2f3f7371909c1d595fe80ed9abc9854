@@ -1,0 +1,43 @@
+scripts/daytona/sandbox-run.sh
+  s_117bee729abcbb::t_45b96ce12baf39 1-126
+.husky/post-commit
+  s_117bee729abcbb::t_e9fd630c58928c 1-13
+.gitignore
+  s_117bee729abcbb::t_bc9a4362df60a9 50-52
+package.json
+  s_117bee729abcbb::t_134aa6304d5bf9 80-81
+  s_117bee729abcbb::t_931cf20acf81c7 47
+  s_117bee729abcbb::t_d1d856f112a639 27
+  s_117bee729abcbb::t_27b59e76591c72 22
+docs/daytona-loop.md
+  s_117bee729abcbb::t_0a0efd69775a1f 1-110
+CLAUDE.md
+  s_117bee729abcbb::t_88f014dd5ab6dd 24
+  s_117bee729abcbb::t_f0eea981310c60 48-51
+docs/e2e-testing.md
+  s_117bee729abcbb::t_75a5c8da6c75a6 89-92
+scripts/daytona/snapshot.Dockerfile
+  s_117bee729abcbb::t_d41fe503e791a3 38-39,44-49
+  s_117bee729abcbb::t_d6caeb3afc62af 1-37,40-43,50-52
+scripts/daytona/harness.mjs
+  s_117bee729abcbb::t_b7af1ec045f65f 1-44,59-308
+  s_117bee729abcbb::t_ded87ff0ea329b 45-58
+.env.example
+  s_117bee729abcbb::t_2d3bbd05dfa746 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "62703104f2f3f7371909c1d595fe80ed9abc9854",
+  "prompts": {},
+  "sessions": {
+    "s_117bee729abcbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8c9f11a5-e747-4493-8129-a524849c83c6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
