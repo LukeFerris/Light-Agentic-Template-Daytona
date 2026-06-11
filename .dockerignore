@@ -3,6 +3,8 @@
 **/dist
 **/build
 coverage
+test-results
+playwright-report
 .git
 .github
 .husky

@@ -16,11 +16,15 @@
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit -p packages/backend/tsconfig.json && tsc --noEmit -p packages/frontend/tsconfig.json",
     "dev": "yarn workspace frontend dev",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
+    "e2e:report": "playwright show-report",
     "deploy": "bash scripts/deploy/deploy-fargate.sh",
     "teardown": "bash scripts/deploy/teardown.sh"
   },
   "devDependencies": {
     "@eslint/js": "*",
+    "@playwright/test": "1.60.0",
     "@secretlint/secretlint-rule-preset-recommend": "*",
     "@types/node": "*",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
