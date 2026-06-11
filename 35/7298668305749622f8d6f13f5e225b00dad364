@@ -1,0 +1,26 @@
+scripts/daytona/harness.mjs
+  s_117bee729abcbb::t_b595ddc9499a95 157-162,165,168,179-184
+  s_117bee729abcbb::t_62fd3263e55041 74-78
+  s_117bee729abcbb::t_27d2509dc6d59d 163-164,167
+docs/daytona-loop.md
+  s_117bee729abcbb::t_7b025e77e846f2 100-101,106-112
+  s_117bee729abcbb::t_fda7672503fc91 23-31
+.env.example
+  s_117bee729abcbb::t_4db79bd36d5331 7-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "357298668305749622f8d6f13f5e225b00dad364",
+  "prompts": {},
+  "sessions": {
+    "s_117bee729abcbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8c9f11a5-e747-4493-8129-a524849c83c6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
