@@ -61,7 +61,6 @@ loadDotenv();
 // inputs below wouldn't otherwise capture.
 const SNAPSHOT_SPEC_VERSION = '1';
 const DOCKERFILE = join(HERE, 'snapshot.Dockerfile');
-const SANDBOX_RUN = join(HERE, 'sandbox-run.sh');
 
 // Manifests COPYed by the snapshot Dockerfile; also part of the snapshot identity.
 const MANIFESTS = [
@@ -141,7 +140,7 @@ async function ensureSnapshot(daytona, name) {
     },
     { onLogs: (c) => process.stdout.write(c.endsWith('\n') ? c : c + '\n'), timeout: 0 },
   );
-  return { built: true, buildSeconds: secs(0, ms()) };
+  return { built: true, buildSeconds: secs(t0, ms()) };
 }
 
 /** Parse the <testsuites> roll-up from Playwright's JUnit report. */
