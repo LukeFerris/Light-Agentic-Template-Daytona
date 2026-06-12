@@ -16,7 +16,9 @@
 //     artifacts -> delete sandbox.
 //
 // Usage:  node scripts/daytona/harness.mjs [--commit <sha>]
-//   DAYTONA_API_KEY        required (or in a gitignored .env loaded by the runner)
+//   DAYTONA_API_KEY        required; read from the env or a gitignored .env. When
+//                          run inside a per-card git worktree (which has no .env),
+//                          it is resolved from the MAIN work tree's .env.
 //   DAYTONA_CPU/MEMORY/DISK  snapshot resources (default 2 / 4 / 5)
 //   REBUILD_SNAPSHOT=1      force a fresh base snapshot
 //   KEEP_SANDBOX=1          skip teardown (debugging)
@@ -41,10 +43,21 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], {
   encoding: 'utf8',
 }).trim();
+// The MAIN work tree = parent of the shared .git dir. When the loop runs inside
+// a per-card git worktree, REPO_ROOT is that worktree, which has no .env (it is
+// gitignored and never copied in). DAYTONA_API_KEY and friends live in the main
+// checkout's .env, so resolve from there too.
+const MAIN_ROOT = dirname(
+  execFileSync(
+    'git',
+    ['rev-parse', '--path-format=absolute', '--git-common-dir'],
+    { encoding: 'utf8' },
+  ).trim(),
+);
 
-/** Load a gitignored .env (KEY=VALUE lines) without taking a dotenv dependency. */
-function loadDotenv() {
-  const path = join(REPO_ROOT, '.env');
+/** Parse a gitignored .env (KEY=VALUE lines) without taking a dotenv dependency. */
+function loadDotenvFrom(root) {
+  const path = join(root, '.env');
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, 'utf8').split('\n')) {
     const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)\s*$/);
@@ -54,7 +67,10 @@ function loadDotenv() {
     if (!(key in process.env)) process.env[key] = val;
   }
 }
-loadDotenv();
+// Worktree .env wins as a local override (first-set wins); the main work tree's
+// .env is the shared fallback so card worktrees inherit the key.
+loadDotenvFrom(REPO_ROOT);
+if (MAIN_ROOT !== REPO_ROOT) loadDotenvFrom(MAIN_ROOT);
 
 // Bumping this forces every snapshot to rebuild even if deps are unchanged —
 // use it when the snapshot Dockerfile's *semantics* change in a way the hash
@@ -188,7 +204,12 @@ async function createSandbox(daytona, name, summary) {
 
 async function main() {
   if (!process.env.DAYTONA_API_KEY) {
-    console.error('DAYTONA_API_KEY is not set (see .env.example / docs/daytona-loop.md).');
+    console.error(
+      'DAYTONA_API_KEY is not set — the Daytona loop must NOT be run locally without it.\n' +
+        'This loop deploys and tests in an isolated Daytona cloud sandbox, not on your machine.\n' +
+        'Put DAYTONA_API_KEY in the MAIN work tree\'s .env (see .env.example / docs/daytona-loop.md); ' +
+        'card worktrees inherit it automatically.',
+    );
     process.exit(2);
   }
 

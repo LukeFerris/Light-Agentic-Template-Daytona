@@ -41,6 +41,14 @@ The loop is the inner gate that proves a commit actually runs, not just compiles
 See [docs/daytona-loop.md](docs/daytona-loop.md) for the full design, the failure
 report format, and the measured numbers.
 
+**Credentials live in the main work tree.** `DAYTONA_API_KEY` (and the optional
+`DAYTONA_*` overrides / `DAYTONA_POST_COMMIT`) belong in a gitignored `.env` in
+the **main checkout**, never in a card worktree (worktrees carry no `.env`). Both
+`yarn daytona:loop` and the post-commit hook resolve `.env` from the main work
+tree (the parent of the shared `.git` dir), so the loop runs identically whether
+you invoke it from `main` or from a `card/<short-id>` worktree — you do not need
+to copy `.env` into each worktree.
+
 ## Key Commands
 
 ```bash
