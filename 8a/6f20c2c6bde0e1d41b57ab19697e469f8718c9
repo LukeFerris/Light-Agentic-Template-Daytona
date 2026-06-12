@@ -1,0 +1,19 @@
+CLAUDE.md
+  s_468dbfb18cc911::t_eb8c9d05935c96 5-10,15-42,66-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8a6f20c2c6bde0e1d41b57ab19697e469f8718c9",
+  "prompts": {},
+  "sessions": {
+    "s_468dbfb18cc911": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "614a6726-8fec-4402-a49c-9857b0355b57",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
