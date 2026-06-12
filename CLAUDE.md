@@ -2,12 +2,44 @@
 
 ## Project Overview
 
-Light Agentic Template - A lightweight fullstack TypeScript template with React frontend and AWS Lambda backend, designed for Claude Code agents.
+Light Agentic Template (Daytona) - A lightweight fullstack TypeScript template
+with a React frontend and a containerized Node API backend, designed for Claude
+Code agents. The template bakes in a **Daytona-driven TDD loop** and a
+**container-first deployment model**: the same images run locally via
+`docker compose`, get exercised per-commit in a throwaway Daytona sandbox, and
+ship to AWS Fargate in production.
 
 ## Package Structure
 
 - `packages/frontend` - React TypeScript frontend with Tailwind CSS (Vite-powered)
-- `packages/backend` - AWS Lambda TypeScript API
+- `packages/backend` - Node TypeScript API. Runs as a container (an HTTP server,
+  `src/server.ts`); deployed to AWS Fargate in production, not Lambda.
+
+## How you work in this template (read this first)
+
+This template enforces a test-driven, container-first loop. As the agent picking
+up this repo, follow it by default:
+
+1. **Write tests as part of TDD** — for every feature, write both **unit tests**
+   (`*.test.ts`, vitest, next to the code) *and* **Playwright e2e tests**
+   (`*.spec.ts` in `e2e/`). Write them alongside the feature, not after.
+2. **Commit** the work (the project requires a clean working tree after every
+   completed piece of work — see Working Guidelines).
+3. **The post-commit Daytona loop deploys and tests it.** After a successful
+   commit, `yarn daytona:loop` deploys HEAD to a throwaway Daytona cloud sandbox,
+   boots the app (frontend + backend + the containerized S3 mock), runs the unit
+   + e2e suites against the **running** app, and hands back a machine-readable
+   `<daytona-loop-result>` PASS/FAIL plus logs and Playwright traces.
+4. **On failure, you MUST read the returned container logs and fix the issue
+   before re-committing.** The report points at `.daytona/runs/<runId>/` —
+   `backend.log` / `frontend.log` / `minio.log` for runtime failures, the
+   Playwright `test-results/` traces & screenshots for e2e failures, and
+   `summary.json` for the structured record. Diagnose from those, fix, re-commit.
+   The loop repeats until green.
+
+The loop is the inner gate that proves a commit actually runs, not just compiles.
+See [docs/daytona-loop.md](docs/daytona-loop.md) for the full design, the failure
+report format, and the measured numbers.
 
 ## Key Commands
 
@@ -31,9 +63,39 @@ yarn deploy           # Build + smoke-test + push images, then stand up the full
 yarn teardown         # Remove every AWS resource the deploy created
 ```
 
-Production runs the frontend and backend as containers on AWS Fargate behind an
-ALB (see [docs/deploy.md](docs/deploy.md)). Local/dev runs the same images via
-`docker compose up` (see [docs/containers.md](docs/containers.md)).
+Deployment is **container-first**. The same images built for local/dev run in
+production — only as immutable artifacts on **AWS Fargate**, behind an ALB and
+pointed at real AWS services instead of the dev mocks (config change only, never
+a code branch). The Fargate stack (ECR, ECS services, ALB, IAM, S3) is
+provisioned by Terraform under `deployment/` and driven by
+`scripts/deploy/deploy-fargate.sh`; this replaced the template's original
+Terraform-into-Lambda model. Local/dev runs the same images via
+`docker compose up`.
+
+- Production deploy & topology: [docs/deploy.md](docs/deploy.md)
+- Local/dev containers: [docs/containers.md](docs/containers.md)
+- AWS service mocks (e.g. MinIO for S3): [docs/aws-mocks.md](docs/aws-mocks.md)
+
+## The Daytona loop deploy model
+
+The per-commit "deploy to Daytona" does **not** bake a new image per commit.
+It boots a **warm BASE snapshot and copies the just-committed source in**:
+
+- **Base snapshot** (`scripts/daytona/snapshot.Dockerfile`) bakes the slow,
+  dependency-only parts: the OS, Playwright + its browsers, the workspace
+  `node_modules`, and the MinIO S3 mock. The harness keys the snapshot on a
+  **hash of the Dockerfile + lockfile + manifests**, so it is rebuilt **only when
+  dependencies change** — never on source changes.
+- **Per commit**, the harness boots a sandbox from that warm base (~1s),
+  injects the committed source over the baked `/app` (via `git archive`, so
+  unpushed local commits work and the baked `node_modules` is reused), then
+  builds + boots the app as localhost processes and runs unit + e2e in-box.
+- **Why:** freshly-baked snapshots intermittently fail to schedule ("No available
+  runners"), while a warm base boots in ~1s. Image-baking is reserved for the
+  **production Fargate deploy**, where running the exact artifact you ship matters.
+
+The rationale and measured numbers (cold vs warm boot, "No available runners"
+causes, cost per run) live in [docs/daytona-loop.md](docs/daytona-loop.md).
 
 ## Testing
 
