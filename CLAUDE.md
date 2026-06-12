@@ -21,6 +21,7 @@ yarn e2e:install      # One-time: install the Chromium build for Playwright
 yarn dev              # Start frontend dev server
 yarn type-check       # TypeScript type checking
 yarn lint             # Run ESLint
+yarn daytona:loop     # Post-commit: deploy HEAD to a Daytona sandbox, run unit+e2e, report back
 ```
 
 ## Deployment Commands
@@ -44,6 +45,10 @@ ALB (see [docs/deploy.md](docs/deploy.md)). Local/dev runs the same images via
   conventions, the failure-artifact setup, and Daytona-loop alignment.
 - `@playwright/test` is pinned (not `*`) so it matches the browsers baked into
   the Daytona base image — see the doc before bumping it.
+- **Post-commit loop**: after a commit, `yarn daytona:loop` deploys it to a
+  throwaway Daytona sandbox, runs unit + e2e against the running app, and returns
+  a machine-readable pass/fail + logs to act on. See
+  [docs/daytona-loop.md](docs/daytona-loop.md).
 
 ## Working Guidelines
 

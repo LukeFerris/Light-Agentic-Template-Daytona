@@ -86,3 +86,7 @@ Other loop-aligned settings in `playwright.config.ts`:
   pulls these to diagnose failures and feed them back to the agent.
 - `reuseExistingServer: true` — in-sandbox the app is already up, so the compose
   `webServer` command is skipped and the tests run straight against it.
+
+The harness that drives this loop — bake the base snapshot, copy the commit in,
+run unit + e2e, report back — is documented in
+[docs/daytona-loop.md](daytona-loop.md) (`yarn daytona:loop`).

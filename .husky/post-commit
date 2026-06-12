@@ -1,0 +1,13 @@
+# Post-commit Daytona deploy-test-report loop (OPT-IN).
+#
+# The per-commit TDD loop: after a commit lands, deploy it to a Daytona sandbox,
+# run the unit + e2e suites, and report a machine-readable pass/fail + logs.
+# See docs/daytona-loop.md.
+#
+# Disabled by default so commits stay fast and offline. Enable by setting
+# DAYTONA_POST_COMMIT=1 (and DAYTONA_API_KEY) in your environment or .env.
+# post-commit is non-blocking: it never rejects the commit, it only reports.
+if [ "${DAYTONA_POST_COMMIT:-}" = "1" ]; then
+  echo "[post-commit] running Daytona deploy-test-report loop for $(git rev-parse --short HEAD) ..."
+  yarn daytona:loop || echo "[post-commit] Daytona loop reported failures — see the report above."
+fi
