@@ -204,7 +204,12 @@ async function createSandbox(daytona, name, summary) {
 
 async function main() {
   if (!process.env.DAYTONA_API_KEY) {
-    console.error('DAYTONA_API_KEY is not set (see .env.example / docs/daytona-loop.md).');
+    console.error(
+      'DAYTONA_API_KEY is not set — the Daytona loop must NOT be run locally without it.\n' +
+        'This loop deploys and tests in an isolated Daytona cloud sandbox, not on your machine.\n' +
+        'Put DAYTONA_API_KEY in the MAIN work tree\'s .env (see .env.example / docs/daytona-loop.md); ' +
+        'card worktrees inherit it automatically.',
+    );
     process.exit(2);
   }
 
