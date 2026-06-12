@@ -29,7 +29,7 @@ test('hello endpoint returns a message and timestamp', async ({ request }) => {
   expect(res.ok()).toBeTruthy();
 
   const body = await res.json();
-  expect(body.message).toBe('Hello Universe');
+  expect(body.message).toBe('HELLO BADGER!');
   // ISO-8601 timestamp the frontend renders.
   expect(Number.isNaN(Date.parse(body.timestamp))).toBe(false);
 });
