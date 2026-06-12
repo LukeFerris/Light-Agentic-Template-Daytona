@@ -13,7 +13,7 @@ e2e/                     # all Playwright specs (top-level, NOT under packages/)
   home.spec.ts           # reference: UI flow through the browser
   api.spec.ts            # reference: API-level checks via the request fixture
 playwright.config.ts     # single config for local + sandbox runs
-test-results/            # traces / screenshots / videos / junit.xml (gitignored)
+test-results/            # traces / screenshots / videos / junit.xml — every run (gitignored)
 playwright-report/        # HTML report (gitignored)
 ```
 
@@ -56,14 +56,22 @@ E2E_BASE_URL=http://localhost:8080 E2E_API_URL=http://localhost:3000 yarn e2e
 - `E2E_API_URL` — the backend origin for API-level specs. Default
   `http://localhost:3000` (compose publishes the Node server there).
 
-## Failure artifacts (for the harness feedback loop)
+## Run artifacts (for the harness feedback loop)
 
-On failure the config retains, under `test-results/`:
+Capture is **always-on**, so the config writes these under `test-results/` on
+**every** run — pass or fail — not just on failure:
 
-- **trace** (`retain-on-failure`) — open with `npx playwright show-trace`,
-- **screenshot** (`only-on-failure`),
-- **video** (`retain-on-failure`),
+- **trace** (`trace: 'on'`) — open with `npx playwright show-trace`,
+- **screenshot** (`screenshot: 'on'`),
+- **video** (`video: 'on'`),
 - **`junit.xml`** — machine-readable results for the harness to parse.
+
+Why always-on rather than the Playwright-default `*-on-failure`: a green run
+produces nothing under `*-on-failure`, so a passing commit can't be inspected the
+way a failing one can. `'on'` makes the Daytona loop hand back the same rich set
+on PASS and FAIL. It is heavier per run (notably `video: 'on'`); the trade-off and
+how to dial it back if the suite grows are covered in
+[daytona-loop.md](daytona-loop.md#always-on-artifact-capture-cost-trade-off).
 
 ## Container / Daytona loop alignment
 
@@ -82,8 +90,8 @@ Other loop-aligned settings in `playwright.config.ts`:
 
 - `launchOptions.chromiumSandbox: false` — Chromium runs as root in the
   container, where its setuid sandbox can't start.
-- `junit` reporter + trace/screenshot/video into `test-results/` — the harness
-  pulls these to diagnose failures and feed them back to the agent.
+- `junit` reporter + always-on trace/screenshot/video into `test-results/` — the
+  harness pulls these on every run to feed back to the agent (PASS or FAIL).
 - `reuseExistingServer: true` — in-sandbox the app is already up, so the compose
   `webServer` command is skipped and the tests run straight against it.
 

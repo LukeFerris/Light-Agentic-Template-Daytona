@@ -75,8 +75,11 @@ one-time snapshot rebuild on the next run.
    spike's "model 1", zero preview-token friction. A preview URL is still
    captured in `summary.json` for external/cross-browser checks if ever needed.
 4. **Report** — pull back `results.json`, the JUnit report, every service log,
-   and (on failure) the Playwright `test-results/` traces & screenshots; collapse
-   them into a `PASS`/`FAIL` plus the agent-facing `<daytona-loop-result>` block.
+   and the Playwright `test-results/` screenshots, traces & video; collapse them
+   into a `PASS`/`FAIL` plus the agent-facing `<daytona-loop-result>` block.
+   Capture is **always-on** (`screenshot`/`trace`/`video: 'on'` in
+   `playwright.config.ts`), so a green run returns the **same rich artifact set**
+   as a red one — the block points at `test-results/` on PASS as well as FAIL.
 5. **Tear down** — always delete the sandbox so parallel agent commits don't leak
    spend (`KEEP_SANDBOX=1` to keep one for debugging).
 
@@ -129,14 +132,43 @@ durable fix for which is a **dedicated/self-hosted runner** (Daytona's
 not anything in this harness. Note the `us` region is not available to every org;
 the harness lets Daytona auto-place rather than pinning one.
 
-## Reading a failure report
+## Reading a run report (PASS or FAIL)
 
-The `<daytona-loop-result>` block names the failing stage (`build` / `unit` /
-`e2e`) and the artifact directory. Under `.daytona/runs/<runId>/`:
+Every run — green or red — returns the same artifacts under `.daytona/runs/<runId>/`,
+so a passing commit is as inspectable as a failing one:
 
 - `.daytona-run/e2e.log`, `unit.log`, `build.log` — the suite output,
 - `.daytona-run/backend.log`, `frontend.log`, `minio.log` — the container/service
   logs to diagnose a runtime failure,
 - `test-results/` — Playwright trace (`npx playwright show-trace`), screenshot,
-  and video for each failed e2e test,
+  and video for **every** e2e test (capture is always-on — see below),
 - `summary.json` — the full structured record (timings, JUnit roll-up, exit codes).
+
+The `<daytona-loop-result>` block carries an `<artifacts>` path (the run dir) and a
+`<test-artifacts>` path (the `test-results/` dir) on both outcomes; on FAIL it also
+names the failing stage (`build` / `unit` / `e2e`) and points you at the logs and
+trace to diagnose from.
+
+### Always-on artifact capture (cost trade-off)
+
+`playwright.config.ts` sets `screenshot`, `trace` and `video` to `'on'` rather than
+the Playwright-default `*-on-failure`. With `*-on-failure`, a green run produces no
+screenshots/traces/video at all — there is nothing to bundle, so a passing commit
+cannot be inspected the way a failing one can. `'on'` captures them on every test
+regardless of outcome, which is what lets the loop hand back a uniform artifact set.
+
+The trade-off is weight: `video: 'on'` records a screencast of **every** test (and
+tracing adds a per-test `trace.zip`), so each run does more I/O and the
+`artifacts.tgz` is larger than a logs-only FAIL bundle was. We accept it because:
+
+- the sandbox is **ephemeral and torn down each run**, so the cost is bounded
+  sandbox time + a one-off download, never accumulating cloud storage;
+- the local `.daytona/runs/<runId>/` dir is **gitignored**, so artifacts never
+  bloat the repo — old run dirs can be deleted freely;
+- the suite is small (a couple of reference specs), so the absolute size and the
+  extra in-sandbox seconds are minor at this scale.
+
+If the e2e suite grows large enough that always-on video dominates run time or
+download size, dial `video` back to `'retain-on-failure'` (or `'on-first-retry'`)
+while keeping `trace`/`screenshot` on — that keeps cheap artifacts always-on and
+makes only the heavy one failure-only.

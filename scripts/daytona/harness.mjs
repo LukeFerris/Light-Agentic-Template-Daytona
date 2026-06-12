@@ -2,9 +2,10 @@
 //
 // On a commit, this boots a sandbox from a pre-baked BASE snapshot, copies the
 // just-committed source in, runs the unit + e2e suites against the running app,
-// pulls back a machine-readable report (+ logs and Playwright artifacts on
-// failure), then tears the sandbox down. A breaking change yields a red report
-// an agent can act on; a passing change reports green.
+// pulls back a machine-readable report (logs PLUS Playwright screenshots, traces
+// and a video — on PASS as well as FAIL, since capture is always-on), then tears
+// the sandbox down. A breaking change yields a red report an agent can act on; a
+// passing change reports green with the same inspectable artifact set.
 //
 // Architecture (see docs/daytona-loop.md):
 //   - BASE snapshot = OS + Playwright + browsers + node_modules + the S3 mock,
@@ -273,6 +274,8 @@ async function main() {
     console.log(`[run] sandbox exit=${res.exitCode} in ${summary.testRunSeconds}s`);
 
     // 5) Pull every artifact back as one tarball, plus junit for direct parsing.
+    //    test-results/ is included unconditionally, so the always-on Playwright
+    //    screenshots/traces/video come back on PASS as well as FAIL.
     await sandbox.process.executeCommand(
       `tar -czf /tmp/artifacts.tgz -C ${WORKDIR} .daytona-run test-results 2>/dev/null || tar -czf /tmp/artifacts.tgz -C ${WORKDIR} .daytona-run`,
       '/',
@@ -326,7 +329,19 @@ function report(summary, outDir) {
     `  <exit build="${r.buildExit ?? '?'}" unit="${r.unitExit ?? '?'}" e2e="${r.e2eExit ?? '?'}"/>`,
   );
   console.log(`  <artifacts>${outDir}</artifacts>`);
-  if (!pass) {
+  // Point at the Playwright screenshots/traces/video regardless of outcome: capture
+  // is always-on (playwright.config.ts), so a PASS run returns the same rich set as
+  // a FAIL run and a green commit is inspectable just like a red one.
+  console.log(`  <test-artifacts>${join(outDir, 'test-results')}</test-artifacts>`);
+  if (pass) {
+    console.log(
+      '  <llm-instruction>The Daytona sandbox run passed. Per-test Playwright ' +
+        `screenshots, traces and a video are under ${join(outDir, 'test-results')} ` +
+        '(open a trace with `npx playwright show-trace`) if you want to inspect the ' +
+        'green run; the service logs are under ' +
+        `${join(outDir, '.daytona-run')}/{e2e,unit,build,backend,frontend}.log.</llm-instruction>`,
+    );
+  } else {
     console.log(
       '  <llm-instruction>An e2e/unit/build step failed in the Daytona sandbox. ' +
         `Read ${join(outDir, '.daytona-run')}/{e2e,unit,build,backend,frontend}.log and the ` +
