@@ -5,8 +5,20 @@
 # See docs/daytona-loop.md.
 #
 # Disabled by default so commits stay fast and offline. Enable by setting
-# DAYTONA_POST_COMMIT=1 (and DAYTONA_API_KEY) in your environment or .env.
+# DAYTONA_POST_COMMIT=1 (and DAYTONA_API_KEY) in the MAIN work tree's .env (or
+# your environment). Both are resolved from the main checkout's .env even when
+# you commit inside a per-card git worktree, which has no .env of its own.
 # post-commit is non-blocking: it never rejects the commit, it only reports.
+
+# Resolve config from the main work tree's .env (parent of the shared .git dir)
+# so the loop behaves identically from card worktrees, which carry no .env.
+MAIN_ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+if [ -f "$MAIN_ROOT/.env" ]; then
+  set -a
+  . "$MAIN_ROOT/.env"
+  set +a
+fi
+
 if [ "${DAYTONA_POST_COMMIT:-}" = "1" ]; then
   echo "[post-commit] running Daytona deploy-test-report loop for $(git rev-parse --short HEAD) ..."
   yarn daytona:loop || echo "[post-commit] Daytona loop reported failures — see the report above."
