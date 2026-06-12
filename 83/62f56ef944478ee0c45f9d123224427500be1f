@@ -1,0 +1,25 @@
+e2e/home.spec.ts
+  s_6a9af3d227ae93::t_27e02feb8d2535 26
+packages/backend/src/services/helloService.test.ts
+  s_6a9af3d227ae93::t_185c18994aa9ca 7
+packages/backend/src/services/helloService.ts
+  s_6a9af3d227ae93::t_487bddebfdadb0 15
+e2e/api.spec.ts
+  s_6a9af3d227ae93::t_eda3207fde2e3e 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8362f56ef944478ee0c45f9d123224427500be1f",
+  "prompts": {},
+  "sessions": {
+    "s_6a9af3d227ae93": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9bcf356-7d61-4838-bc1e-f4a144e49c2e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
