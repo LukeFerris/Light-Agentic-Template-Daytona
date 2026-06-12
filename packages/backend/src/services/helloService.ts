@@ -12,7 +12,7 @@ export interface HelloResult {
  */
 export function getHelloMessage(): HelloResult {
   return {
-    message: 'Hello Universe',
+    message: 'HELLO BADGER!',
     timestamp: new Date().toISOString(),
   };
 }
