@@ -103,13 +103,31 @@ artifact.
 | `KEEP_SANDBOX` | off | Leave the sandbox running for debugging. |
 | `DAYTONA_POST_COMMIT` | off | Enable the `.husky/post-commit` loop. |
 
-> **"No available runners".** This is Daytona's #1 operational risk (see the
-> spike). It is intermittent and applies to *custom snapshots* specifically — the
-> default image always places instantly. The harness rides it out with a patient
-> retry budget; a cold snapshot can take several minutes to first place, then
-> boots in ~1s thereafter. The `us` region is not available to every org; the
-> harness lets Daytona auto-place rather than pinning a region. For predictable
-> capacity, self-host a runner.
+### Known issue: "No available runners"
+
+This is Daytona's #1 operational risk (see the spike). Daytona's own tracker
+([daytonaio/daytona#2523](https://github.com/daytonaio/daytona/issues/2523))
+confirms the generic error actually covers **two different causes**:
+
+1. **Snapshot propagation** — a newly-built snapshot takes *"2-5 minutes to
+   propagate"* to the runners before it can be scheduled. This is a **one-time,
+   per-snapshot** cost (i.e. once per dependency change, since the snapshot is
+   keyed on the lockfile). The default image never hits this because it is
+   already on every runner.
+2. **Capacity** — sometimes the shared fleet simply has no free runner. This is
+   random, unrelated to our image, and can recur on any run.
+
+Measured here: the first boot after a bake stalled ~4.5 min (propagation), then
+booted in ~1s — including a cold boot the **next morning** after the runner had
+recycled, which confirms propagation is durable, not a per-machine re-warm. The
+harness rides both causes out with a patient retry budget
+(`DAYTONA_BOOT_RETRY_SECONDS`, default 600). So: expect the *first* run after any
+dependency change to take a few minutes; steady-state runs are ~1s. A multi-minute
+stall on a run where dependencies did **not** change is the capacity case — the
+durable fix for which is a **dedicated/self-hosted runner** (Daytona's
+[job-based runners + custom regions](https://www.daytona.io/changelog/job-based-runners-custom-regions)),
+not anything in this harness. Note the `us` region is not available to every org;
+the harness lets Daytona auto-place rather than pinning one.
 
 ## Reading a failure report
 
