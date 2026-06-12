@@ -12,7 +12,7 @@ export interface HelloResult {
  */
 export function getHelloMessage(): HelloResult {
   return {
-    message: 'Hello from Light Agentic Template',
+    message: 'Hello Universe',
     timestamp: new Date().toISOString(),
   };
 }

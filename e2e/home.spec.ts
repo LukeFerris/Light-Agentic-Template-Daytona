@@ -23,7 +23,7 @@ test('home page loads and shows the message from the API', async ({ page }) => {
   // This text only appears once the /hello API call resolves, so seeing it
   // proves the browser reached the backend through the container network.
   await expect(
-    page.getByText('Hello from Light Agentic Template'),
+    page.getByText('Hello Universe'),
   ).toBeVisible();
 
   // The API error banner must NOT be present on a healthy stack.
