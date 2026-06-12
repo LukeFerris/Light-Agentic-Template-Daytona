@@ -1,0 +1,26 @@
+scripts/daytona/harness.mjs
+  s_75af3cc4deb339::t_b986109694f741 19-21
+  s_75af3cc4deb339::t_9e7bc4b1e0141f 46-56,58-60,70-73
+.husky/post-commit
+  s_75af3cc4deb339::t_7ba245a82c2788 8-10,12-21
+.env.example
+  s_75af3cc4deb339::t_3f41f3690500e7 1-3
+CLAUDE.md
+  s_75af3cc4deb339::t_c3cf51b845db13 44-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "c12b534dc116fc157961376327353dcef8e7cc60",
+  "prompts": {},
+  "sessions": {
+    "s_75af3cc4deb339": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2b4079d4-afdd-49c7-93d4-e0ff36f20033",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
