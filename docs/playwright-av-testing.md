@@ -173,6 +173,13 @@ need per-frame precision.
 
 ## Tier 3 — the LLM (semantic) judge
 
+> Tier 3 is a **required-real (Pattern B)** dependency under the repo-wide
+> [external-services.md](external-services.md) policy: it calls a real model and
+> so must be double-gated and quarantined off the per-commit loop. The
+> `/summarize` endpoint + [`e2e/llm.spec.ts`](../e2e/llm.spec.ts) are the
+> runnable reference for that gating; this section is the multimodal _judge_
+> variant of the same pattern.
+
 Some assertions are irreducibly perceptual and have no DOM/clock proxy:
 
 - *"The video shows a person talking."*

@@ -1,5 +1,10 @@
 # AWS service mocks
 
+> This is the canonical **Pattern A (mockable service)** example for the
+> repo-wide policy in [external-services.md](external-services.md). Read that
+> first to decide whether a new dependency belongs here or in the required-real
+> tier.
+
 Every AWS service the app depends on has an **identical-functional mock that
 runs as a container** for local/dev/test. The same application code talks to the
 mock and to real AWS — the difference is **configuration only, never a code

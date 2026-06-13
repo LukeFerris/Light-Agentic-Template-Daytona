@@ -11,6 +11,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "*",
     "@aws-sdk/client-s3": "*"
   },
   "devDependencies": {
