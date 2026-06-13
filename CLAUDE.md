@@ -83,6 +83,11 @@ Terraform-into-Lambda model. Local/dev runs the same images via
 - Production deploy & topology: [docs/deploy.md](docs/deploy.md)
 - Local/dev containers: [docs/containers.md](docs/containers.md)
 - AWS service mocks (e.g. MinIO for S3): [docs/aws-mocks.md](docs/aws-mocks.md)
+- **External-service policy (mock vs. call-for-real):**
+  [docs/external-services.md](docs/external-services.md) — read this before
+  adding any new external dependency. It defines the one decision (mockable
+  Pattern A vs. required-real Pattern B) and the checklists that keep the
+  per-commit Daytona loop deterministic and key-free.
 
 ## The Daytona loop deploy model
 

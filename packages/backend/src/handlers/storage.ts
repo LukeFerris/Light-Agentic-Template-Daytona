@@ -1,20 +1,6 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { CORS_HEADERS } from '../cors';
+import { jsonResponse as respond } from '../cors';
 import { getObject, putObject } from '../services/storageService';
-
-/**
- * Builds an API Gateway response with the shared CORS headers.
- * @param statusCode - HTTP status code
- * @param body - Response payload to serialize as JSON
- * @returns API Gateway response
- */
-function respond(statusCode: number, body: unknown): APIGatewayProxyResult {
-  return {
-    statusCode,
-    headers: CORS_HEADERS,
-    body: JSON.stringify(body),
-  };
-}
 
 /**
  * Handles `POST /storage` — stores a `{ key, value }` pair in object storage.

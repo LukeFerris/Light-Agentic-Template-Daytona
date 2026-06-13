@@ -2,9 +2,13 @@ import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handler } from './index';
 import { handleStorage } from './handlers/storage';
+import { handleLlm } from './handlers/llm';
 
 vi.mock('./handlers/storage', () => ({
   handleStorage: vi.fn(async () => ({ statusCode: 200, body: '{"ok":true}' })),
+}));
+vi.mock('./handlers/llm', () => ({
+  handleLlm: vi.fn(async () => ({ statusCode: 200, body: '{"ok":true}' })),
 }));
 
 const context = { awsRequestId: 'req-1' } as Context;
@@ -43,6 +47,12 @@ describe('handler routing', () => {
   it('routes the stage-prefixed /prod/storage path too', async () => {
     await handler(event({ path: '/prod/storage' }), context);
     expect(handleStorage).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes /summarize to the LLM handler', async () => {
+    const res = await handler(event({ path: '/summarize', httpMethod: 'POST' }), context);
+    expect(handleLlm).toHaveBeenCalledTimes(1);
+    expect(res.statusCode).toBe(200);
   });
 
   it('returns 404 for unknown paths', async () => {

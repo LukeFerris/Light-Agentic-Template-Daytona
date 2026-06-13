@@ -5,6 +5,7 @@ import type {
 } from 'aws-lambda';
 import { CORS_HEADERS } from './cors';
 import { handleHello } from './handlers/hello';
+import { handleLlm } from './handlers/llm';
 import { handleStorage } from './handlers/storage';
 
 /**
@@ -29,6 +30,10 @@ export async function handler(
 
   if (path === '/storage' || path === '/prod/storage') {
     return handleStorage(event);
+  }
+
+  if (path === '/summarize' || path === '/prod/summarize') {
+    return handleLlm(event);
   }
 
   return {
