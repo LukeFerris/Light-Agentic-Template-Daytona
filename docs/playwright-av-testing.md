@@ -139,12 +139,16 @@ const rms = await page.evaluate(async () => {
 expect(rms).toBeGreaterThan(0.01); // above the noise floor
 ```
 
-> **Autoplay caveat.** Browsers block audio until a user gesture. In tests
-> either trigger playback from a real `click`, mute the element
-> (`muted`/`volume = 0` still advances `currentTime`), or launch Chromium with
-> `--autoplay-policy=no-user-gesture-required`. Capturing the *system* audio
-> output of headless Chromium is not practical — the in-page `AnalyserNode`
-> route above is how you observe the signal.
+> **Autoplay.** Browsers block audio until a user gesture, and a headless test
+> run has none — so `<audio>`/`<video>` that should start on load silently
+> won't. This template removes that footgun globally: `playwright.config.ts`
+> launches Chromium with `--autoplay-policy=no-user-gesture-required` in
+> `launchOptions.args` (commented **MUST ALWAYS BE SET**), so every spec
+> inherits it and you don't add it per-test. You can still mute
+> (`muted`/`volume = 0` — `currentTime` keeps advancing) if a spec shouldn't
+> make noise. Capturing the *system* audio output of headless Chromium is not
+> practical — the in-page `AnalyserNode` route above is how you observe the
+> signal.
 
 ### Video
 
@@ -254,10 +258,10 @@ deterministic, fast, and key-free. That shapes the recommendation:
 
 3. **Mind the Daytona/headless constraints** documented in
    [e2e-testing.md](e2e-testing.md): Chromium runs as root with
-   `chromiumSandbox: false`; add `--autoplay-policy=no-user-gesture-required` to
-   `launchOptions.args` if a spec needs unmuted autoplay; and remember the base
-   image pins `@playwright/test` to the snapshot's browser version — don't bump
-   one without the other.
+   `chromiumSandbox: false`, and autoplay is already unblocked globally via
+   `--autoplay-policy=no-user-gesture-required` in `launchOptions.args` (you do
+   not add it per-test). Remember the base image pins `@playwright/test` to the
+   snapshot's browser version — don't bump one without the other.
 
 ### Decision shortcut
 
