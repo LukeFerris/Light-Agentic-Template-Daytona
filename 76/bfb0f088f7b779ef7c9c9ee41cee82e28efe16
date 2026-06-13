@@ -1,0 +1,22 @@
+playwright.config.ts
+  s_07b076f8dfe2f0::t_4037c19caa8edd 47-58
+docs/playwright-av-testing.md
+  s_07b076f8dfe2f0::t_82bde797a07877 142-151
+  s_07b076f8dfe2f0::t_3d4d1be80da5a4 261-264
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "76bfb0f088f7b779ef7c9c9ee41cee82e28efe16",
+  "prompts": {},
+  "sessions": {
+    "s_07b076f8dfe2f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec681227-d963-4da0-ab98-cef174512b9f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
