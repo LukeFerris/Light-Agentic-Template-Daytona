@@ -51,9 +51,18 @@ export default defineConfig({
     trace: 'on',
     screenshot: 'on',
     video: 'on',
-    // Chromium runs as root inside the container, where its setuid sandbox
-    // cannot start — disable it so tests run both locally and in-sandbox.
-    launchOptions: { chromiumSandbox: false },
+    launchOptions: {
+      // Chromium runs as root inside the container, where its setuid sandbox
+      // cannot start — disable it so tests run both locally and in-sandbox.
+      chromiumSandbox: false,
+      // MUST ALWAYS BE SET. Headless test runs have no user gesture, so the
+      // browser's autoplay policy otherwise blocks <audio>/<video> from
+      // starting on load — playback assertions would fail for a reason that
+      // has nothing to do with the code under test. Setting it here (not
+      // per-test) guarantees every spec inherits it. See
+      // docs/playwright-av-testing.md.
+      args: ['--autoplay-policy=no-user-gesture-required'],
+    },
   },
 
   projects: [

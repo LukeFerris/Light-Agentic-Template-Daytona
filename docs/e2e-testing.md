@@ -32,6 +32,10 @@ playwright-report/        # HTML report (gitignored)
 - Use the **`request` fixture** for HTTP-only checks (health, API contracts) —
   faster than spinning up a page.
 - Assert both **status and body shape** for API calls.
+- Verifying **audio / animation / video** (incl. subjective "is it animating?"
+  checks) has its own tiered guide — prefer deterministic media-clock/pixel
+  signals, reserve an LLM judge for the perceptual residue:
+  [playwright-av-testing.md](playwright-av-testing.md).
 
 ## Running locally
 
