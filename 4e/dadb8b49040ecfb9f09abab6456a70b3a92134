@@ -1,0 +1,57 @@
+packages/backend/src/index.test.ts
+  s_41d695a7e45848::t_3eb79d2a25807e 5,10-11
+  s_41d695a7e45848::t_6e6374daf6a277 52-57
+packages/backend/src/index.ts
+  s_41d695a7e45848::t_aea26aafab89c7 8
+  s_41d695a7e45848::t_598a20225e79b9 35-38
+packages/backend/src/handlers/storage.ts
+  s_41d695a7e45848::t_7b751f9d1fb7cc 2
+packages/backend/src/handlers/llm.test.ts
+  s_41d695a7e45848::t_4c06a59f2cde24 1-85
+packages/backend/src/cors.ts
+  s_41d695a7e45848::t_770b14b0c4b906 1-2,12-29
+packages/backend/src/services/llmService.ts
+  s_41d695a7e45848::t_1acd85665b1d37 1-50
+packages/backend/src/handlers/llm.ts
+  s_41d695a7e45848::t_5bd1b0d6ac0f4f 2
+  s_41d695a7e45848::t_7e884e42fa0dca 1,3-46
+packages/backend/package.json
+  s_41d695a7e45848::t_d877e20d9f4160 14
+CLAUDE.md
+  s_41d695a7e45848::t_ce9b4034eb2c44 86-90
+packages/backend/src/services/llmService.test.ts
+  s_41d695a7e45848::t_c975f208105e32 1-60
+docs/external-services.md
+  s_41d695a7e45848::t_21f5d792a02916 1-111
+.env.example
+  s_41d695a7e45848::t_f0be6ea3134a29 17-26
+docs/playwright-av-testing.md
+  s_41d695a7e45848::t_1da8a9a68445fc 176-182
+e2e/llm.spec.ts
+  s_41d695a7e45848::t_26eabb3ba3ed8f 1-50
+package.json
+  s_41d695a7e45848::t_6875868adb7d68 20
+  s_41d695a7e45848::t_b10bf2dded9624 80
+packages/backend/src/services/llm/anthropicClient.ts
+  s_41d695a7e45848::t_7aadac374e1913 1-84
+packages/backend/src/services/llm/anthropicClient.test.ts
+  s_41d695a7e45848::t_13777559441e83 1-76
+docs/aws-mocks.md
+  s_41d695a7e45848::t_a03e2de80c4a21 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "4edadb8b49040ecfb9f09abab6456a70b3a92134",
+  "prompts": {},
+  "sessions": {
+    "s_41d695a7e45848": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e68100e1-79b4-415b-87d3-46505c22147b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
