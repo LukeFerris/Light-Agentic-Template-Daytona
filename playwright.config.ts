@@ -23,7 +23,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:8080';
 
 export default defineConfig({
   testDir: './e2e',
-  // Traces, screenshots and videos land here on failure for the harness to pull.
+  // Traces, screenshots and videos land here on EVERY run (pass or fail) for the
+  // harness to pull — a green commit is inspectable just like a red one.
   outputDir: './test-results',
 
   // Fail the run if a test was accidentally left as test.only in CI.
@@ -41,9 +42,15 @@ export default defineConfig({
 
   use: {
     baseURL,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // Always-on capture (not *-on-failure): the Daytona loop returns the full
+    // artifact set on PASS as well as FAIL, so a passing commit can be inspected
+    // — screenshot, trace and video — exactly like a failing one. This is heavier
+    // per run (notably `video: 'on'`); the trade-off is documented in
+    // docs/daytona-loop.md. The sandbox is ephemeral and torn down each run, so
+    // the cost is bounded sandbox time, not accumulating storage.
+    trace: 'on',
+    screenshot: 'on',
+    video: 'on',
     // Chromium runs as root inside the container, where its setuid sandbox
     // cannot start — disable it so tests run both locally and in-sandbox.
     launchOptions: { chromiumSandbox: false },
