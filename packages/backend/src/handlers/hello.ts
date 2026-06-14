@@ -1,17 +1,15 @@
-import type { APIGatewayProxyResult } from 'aws-lambda';
-import { CORS_HEADERS } from '../cors';
+import type { ApiResponse } from '../http/types';
 import { getHelloMessage } from '../services/helloService';
 
 /**
  * Handles the hello REST endpoint.
- * @param requestId - AWS Lambda request ID
- * @returns API Gateway response with hello message
+ * @param requestId - Correlation id for the request
+ * @returns Normalized response with the hello message
  */
-export function handleHello(requestId: string): APIGatewayProxyResult {
+export function handleHello(requestId: string): ApiResponse {
   const result = getHelloMessage();
   return {
     statusCode: 200,
-    headers: CORS_HEADERS,
-    body: JSON.stringify({ ...result, requestId }),
+    body: { ...result, requestId },
   };
 }

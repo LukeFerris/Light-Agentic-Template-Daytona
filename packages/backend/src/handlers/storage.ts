@@ -1,65 +1,64 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { jsonResponse as respond } from '../cors';
+import type { ApiRequest, ApiResponse } from '../http/types';
 import { getObject, putObject } from '../services/storageService';
 
 /**
  * Handles `POST /storage` — stores a `{ key, value }` pair in object storage.
- * @param event - API Gateway proxy event
- * @returns API Gateway response echoing the stored key, or a 400 on bad input
+ * @param request - Normalized inbound request
+ * @returns Response echoing the stored key, or a 400 on bad input
  */
-async function handlePost(
-  event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> {
+async function handlePost(request: ApiRequest): Promise<ApiResponse> {
   let payload: unknown;
   try {
-    payload = JSON.parse(event.body ?? '');
+    payload = JSON.parse(request.body ?? '');
   } catch {
-    return respond(400, { error: 'Invalid JSON body' });
+    return { statusCode: 400, body: { error: 'Invalid JSON body' } };
   }
 
   const { key, value } = (payload ?? {}) as Record<string, unknown>;
   if (typeof key !== 'string' || typeof value !== 'string') {
-    return respond(400, { error: 'Body must include string "key" and "value"' });
+    return {
+      statusCode: 400,
+      body: { error: 'Body must include string "key" and "value"' },
+    };
   }
 
   await putObject(key, value);
-  return respond(201, { key });
+  return { statusCode: 201, body: { key } };
 }
 
 /**
  * Handles `GET /storage?key=...` — retrieves a stored value by key.
- * @param event - API Gateway proxy event
- * @returns API Gateway response with the stored object, or 400/404
+ * @param request - Normalized inbound request
+ * @returns Response with the stored object, or 400/404
  */
-async function handleGet(
-  event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> {
-  const key = event.queryStringParameters?.key;
+async function handleGet(request: ApiRequest): Promise<ApiResponse> {
+  const key = request.query.key;
   if (!key) {
-    return respond(400, { error: 'Query parameter "key" is required' });
+    return {
+      statusCode: 400,
+      body: { error: 'Query parameter "key" is required' },
+    };
   }
 
   const stored = await getObject(key);
   if (!stored) {
-    return respond(404, { error: 'Not found', key });
+    return { statusCode: 404, body: { error: 'Not found', key } };
   }
-  return respond(200, stored);
+  return { statusCode: 200, body: stored };
 }
 
 /**
  * Routes the storage endpoint by HTTP method. Demonstrates an AWS S3 round-trip
  * that runs identically against the mock container and real AWS.
- * @param event - API Gateway proxy event
- * @returns API Gateway response
+ * @param request - Normalized inbound request
+ * @returns The handler's response
  */
-export async function handleStorage(
-  event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> {
-  if (event.httpMethod === 'POST') {
-    return handlePost(event);
+export async function handleStorage(request: ApiRequest): Promise<ApiResponse> {
+  if (request.method === 'POST') {
+    return handlePost(request);
   }
-  if (event.httpMethod === 'GET') {
-    return handleGet(event);
+  if (request.method === 'GET') {
+    return handleGet(request);
   }
-  return respond(405, { error: 'Method not allowed' });
+  return { statusCode: 405, body: { error: 'Method not allowed' } };
 }
