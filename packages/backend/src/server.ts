@@ -1,18 +1,14 @@
 import {
   createServer,
   type IncomingMessage,
+  type Server,
   type ServerResponse,
-  type OutgoingHttpHeaders,
 } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from 'aws-lambda';
-import { handler } from './index';
+import { CORS_HEADERS } from './http/cors';
+import { route } from './router';
 
-const PORT = Number(process.env.PORT ?? 3000);
+const DEFAULT_PORT = 3000;
 
 /**
  * Reads the full request body as a string.
@@ -31,88 +27,71 @@ function readBody(req: IncomingMessage): Promise<string | null> {
 }
 
 /**
- * Builds a minimal API Gateway proxy event from a Node HTTP request so the
- * same Lambda handler can run unchanged inside a container.
+ * Handles a single HTTP request by translating it into the normalized request
+ * the shared router understands, then writing the router's response back. The
+ * Node `http` counterpart to the Lambda adapter in `index.ts`. Exported so it
+ * can be unit-tested without binding a real socket.
  * @param req - Incoming HTTP request
- * @param body - Request body (or null)
- * @returns An API Gateway proxy event
+ * @param res - Outgoing HTTP response
+ * @returns A promise that resolves once the response has been sent
  */
-function toProxyEvent(
+export async function handleRequest(
   req: IncomingMessage,
-  body: string | null,
-): APIGatewayProxyEvent {
-  const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
-  const queryStringParameters: Record<string, string> = {};
-  url.searchParams.forEach((value, key) => {
-    queryStringParameters[key] = value;
-  });
-  const headers: Record<string, string> = {};
-  for (const [key, value] of Object.entries(req.headers)) {
-    if (typeof value === 'string') headers[key] = value;
-    else if (Array.isArray(value)) headers[key] = value.join(',');
+  res: ServerResponse,
+): Promise<void> {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
+    return;
   }
 
-  return {
-    httpMethod: req.method ?? 'GET',
-    path: url.pathname,
-    queryStringParameters:
-      Object.keys(queryStringParameters).length > 0
-        ? queryStringParameters
-        : null,
-    headers,
-    multiValueHeaders: {},
-    multiValueQueryStringParameters: null,
-    pathParameters: null,
-    stageVariables: null,
-    body,
-    isBase64Encoded: false,
-    resource: url.pathname,
-    requestContext: {} as APIGatewayProxyEvent['requestContext'],
-  };
+  try {
+    const body = await readBody(req);
+    const url = new URL(
+      req.url ?? '/',
+      `http://${req.headers.host ?? 'localhost'}`,
+    );
+    const query: Record<string, string | undefined> = {};
+    url.searchParams.forEach((value, key) => {
+      query[key] = value;
+    });
+
+    const result = await route({
+      method: req.method ?? 'GET',
+      path: url.pathname,
+      query,
+      body,
+      requestId: randomUUID(),
+    });
+
+    res.writeHead(result.statusCode, CORS_HEADERS);
+    res.end(result.body === null ? '' : JSON.stringify(result.body));
+  } catch (err) {
+    res.writeHead(500, CORS_HEADERS);
+    res.end(
+      JSON.stringify({
+        error: 'Internal server error',
+        message: err instanceof Error ? err.message : 'Unknown error',
+      }),
+    );
+  }
 }
 
 /**
- * Builds a minimal Lambda context carrying a unique request id.
- * @returns A Lambda execution context
+ * Creates and starts the local development / container HTTP server. The server
+ * runs the SAME router that the Lambda adapter uses, so local `dev` and
+ * production behave identically.
+ * @param port - TCP port to listen on; defaults to the PORT env var or 3000
+ * @returns The started HTTP server instance
  */
-function makeContext(): Context {
-  return { awsRequestId: randomUUID() } as Context;
+export function startServer(
+  port = Number(process.env.PORT) || DEFAULT_PORT,
+): Server {
+  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+    void handleRequest(req, res);
+  });
+  server.listen(port, () => {
+    console.log(`Backend listening on http://localhost:${port}`);
+  });
+  return server;
 }
-
-const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-  void (async () => {
-    try {
-      // Lightweight health probe used by container orchestrators.
-      if (req.url === '/health') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok' }));
-        return;
-      }
-
-      const body = await readBody(req);
-      const event = toProxyEvent(req, body);
-      const result: APIGatewayProxyResult = await handler(event, makeContext());
-
-      // API Gateway header values may be boolean; Node's writeHead only accepts
-      // string/number/string[], so coerce booleans to strings.
-      const headers: OutgoingHttpHeaders = { 'Content-Type': 'application/json' };
-      for (const [key, value] of Object.entries(result.headers ?? {})) {
-        headers[key] = typeof value === 'boolean' ? String(value) : value;
-      }
-      res.writeHead(result.statusCode, headers);
-      res.end(result.body ?? '');
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(
-        JSON.stringify({
-          error: 'Internal server error',
-          message: err instanceof Error ? err.message : 'Unknown error',
-        }),
-      );
-    }
-  })();
-});
-
-server.listen(PORT, () => {
-  console.log(`Backend listening on port ${PORT}`);
-});

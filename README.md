@@ -64,6 +64,7 @@ determinism and which tests are allowed on the per-commit hot path.
 yarn install            # install dependencies + set up husky hooks
 yarn e2e:install        # one-time: install the Chromium build for Playwright
 yarn dev                # start the frontend dev server
+yarn dev:api            # start the backend API locally (http://localhost:3000); run alongside `yarn dev`
 yarn build              # build all packages
 yarn test               # unit tests (vitest)
 yarn e2e                # Playwright e2e against the containerized app

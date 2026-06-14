@@ -1,6 +1,6 @@
-import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handleLlm } from './llm';
+import type { ApiRequest } from '../http/types';
 import { isLlmConfigured } from '../services/llm/anthropicClient';
 import { summarize } from '../services/llmService';
 
@@ -12,19 +12,19 @@ vi.mock('../services/llmService', () => ({
 }));
 
 /**
- * Builds a minimal API Gateway event for the LLM handler tests.
- * @param overrides - Fields to override on the base event
- * @returns An API Gateway proxy event
+ * Builds a normalized request for the LLM handler tests.
+ * @param overrides - Fields to override on the base request
+ * @returns A normalized API request
  */
-function event(
-  overrides: Partial<APIGatewayProxyEvent>,
-): APIGatewayProxyEvent {
+function request(overrides: Partial<ApiRequest>): ApiRequest {
   return {
-    httpMethod: 'POST',
-    queryStringParameters: null,
+    method: 'POST',
+    path: '/summarize',
+    query: {},
     body: null,
+    requestId: 'test-id',
     ...overrides,
-  } as APIGatewayProxyEvent;
+  };
 }
 
 beforeEach(() => {
@@ -39,13 +39,11 @@ describe('handleLlm', () => {
       model: 'claude-haiku-4-5-20251001',
     });
 
-    const res = await handleLlm(
-      event({ body: JSON.stringify({ text: 'some text' }) }),
-    );
+    const res = await handleLlm(request({ body: JSON.stringify({ text: 'some text' }) }));
 
     expect(summarize).toHaveBeenCalledWith('some text');
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual({
+    expect(res.body).toEqual({
       summary: 'A summary.',
       model: 'claude-haiku-4-5-20251001',
     });
@@ -54,30 +52,28 @@ describe('handleLlm', () => {
   it('returns 503 when no LLM is configured (graceful degradation)', async () => {
     vi.mocked(isLlmConfigured).mockReturnValue(false);
 
-    const res = await handleLlm(
-      event({ body: JSON.stringify({ text: 'some text' }) }),
-    );
+    const res = await handleLlm(request({ body: JSON.stringify({ text: 'some text' }) }));
 
     expect(res.statusCode).toBe(503);
     expect(summarize).not.toHaveBeenCalled();
   });
 
   it('returns 400 when the body is not valid JSON', async () => {
-    const res = await handleLlm(event({ body: 'not json' }));
+    const res = await handleLlm(request({ body: 'not json' }));
 
     expect(res.statusCode).toBe(400);
     expect(summarize).not.toHaveBeenCalled();
   });
 
   it('returns 400 when text is missing or empty', async () => {
-    const res = await handleLlm(event({ body: JSON.stringify({ text: '   ' }) }));
+    const res = await handleLlm(request({ body: JSON.stringify({ text: '   ' }) }));
 
     expect(res.statusCode).toBe(400);
     expect(summarize).not.toHaveBeenCalled();
   });
 
   it('returns 405 for non-POST methods', async () => {
-    const res = await handleLlm(event({ httpMethod: 'GET' }));
+    const res = await handleLlm(request({ method: 'GET' }));
 
     expect(res.statusCode).toBe(405);
     expect(summarize).not.toHaveBeenCalled();

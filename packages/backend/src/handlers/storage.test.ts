@@ -1,6 +1,6 @@
-import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handleStorage } from './storage';
+import type { ApiRequest } from '../http/types';
 import { getObject, putObject } from '../services/storageService';
 
 vi.mock('../services/storageService', () => ({
@@ -9,19 +9,19 @@ vi.mock('../services/storageService', () => ({
 }));
 
 /**
- * Builds a minimal API Gateway event for the storage handler tests.
- * @param overrides - Fields to override on the base event
- * @returns An API Gateway proxy event
+ * Builds a normalized request for the storage handler tests.
+ * @param overrides - Fields to override on the base request
+ * @returns A normalized API request
  */
-function event(
-  overrides: Partial<APIGatewayProxyEvent>,
-): APIGatewayProxyEvent {
+function request(overrides: Partial<ApiRequest>): ApiRequest {
   return {
-    httpMethod: 'GET',
-    queryStringParameters: null,
+    method: 'GET',
+    path: '/storage',
+    query: {},
     body: null,
+    requestId: 'test-id',
     ...overrides,
-  } as APIGatewayProxyEvent;
+  };
 }
 
 beforeEach(() => {
@@ -31,16 +31,16 @@ beforeEach(() => {
 describe('handleStorage POST', () => {
   it('stores the value and returns 201 with the key', async () => {
     const res = await handleStorage(
-      event({ httpMethod: 'POST', body: JSON.stringify({ key: 'k', value: 'v' }) }),
+      request({ method: 'POST', body: JSON.stringify({ key: 'k', value: 'v' }) }),
     );
 
     expect(putObject).toHaveBeenCalledWith('k', 'v');
     expect(res.statusCode).toBe(201);
-    expect(JSON.parse(res.body)).toEqual({ key: 'k' });
+    expect(res.body).toEqual({ key: 'k' });
   });
 
   it('returns 400 when the body is not valid JSON', async () => {
-    const res = await handleStorage(event({ httpMethod: 'POST', body: 'not json' }));
+    const res = await handleStorage(request({ method: 'POST', body: 'not json' }));
 
     expect(res.statusCode).toBe(400);
     expect(putObject).not.toHaveBeenCalled();
@@ -48,7 +48,7 @@ describe('handleStorage POST', () => {
 
   it('returns 400 when key or value is missing', async () => {
     const res = await handleStorage(
-      event({ httpMethod: 'POST', body: JSON.stringify({ key: 'k' }) }),
+      request({ method: 'POST', body: JSON.stringify({ key: 'k' }) }),
     );
 
     expect(res.statusCode).toBe(400);
@@ -60,17 +60,15 @@ describe('handleStorage GET', () => {
   it('returns 200 with the stored object', async () => {
     vi.mocked(getObject).mockResolvedValue({ key: 'k', value: 'v' });
 
-    const res = await handleStorage(
-      event({ httpMethod: 'GET', queryStringParameters: { key: 'k' } }),
-    );
+    const res = await handleStorage(request({ method: 'GET', query: { key: 'k' } }));
 
     expect(getObject).toHaveBeenCalledWith('k');
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual({ key: 'k', value: 'v' });
+    expect(res.body).toEqual({ key: 'k', value: 'v' });
   });
 
   it('returns 400 when the key query parameter is missing', async () => {
-    const res = await handleStorage(event({ httpMethod: 'GET' }));
+    const res = await handleStorage(request({ method: 'GET' }));
 
     expect(res.statusCode).toBe(400);
     expect(getObject).not.toHaveBeenCalled();
@@ -80,7 +78,7 @@ describe('handleStorage GET', () => {
     vi.mocked(getObject).mockResolvedValue(null);
 
     const res = await handleStorage(
-      event({ httpMethod: 'GET', queryStringParameters: { key: 'missing' } }),
+      request({ method: 'GET', query: { key: 'missing' } }),
     );
 
     expect(res.statusCode).toBe(404);
@@ -89,7 +87,7 @@ describe('handleStorage GET', () => {
 
 describe('handleStorage other methods', () => {
   it('returns 405 for unsupported methods', async () => {
-    const res = await handleStorage(event({ httpMethod: 'DELETE' }));
+    const res = await handleStorage(request({ method: 'DELETE' }));
     expect(res.statusCode).toBe(405);
   });
 });

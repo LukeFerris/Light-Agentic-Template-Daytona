@@ -41,15 +41,37 @@ Then open <http://localhost:8080>.
 
 ## How the backend runs as a container
 
-The backend is an AWS Lambda handler (`packages/backend/src/index.ts`).
-`packages/backend/src/server.ts` wraps that handler in a Node HTTP server,
-translating incoming requests into the API Gateway event shape the handler
-expects. The same handler therefore runs unchanged on Lambda and in a container.
+The backend is built around a framework-agnostic router
+(`packages/backend/src/router.ts`): it takes a normalized `ApiRequest` and
+returns a normalized `ApiResponse`, with no knowledge of any transport. Two thin
+adapters share that one router:
+
+- `packages/backend/src/index.ts` — the **AWS Lambda** adapter: API Gateway
+  event → `route()` → API Gateway result.
+- `packages/backend/src/server.ts` — the **Node `http`** adapter: incoming
+  request → `route()` → HTTP response. `src/dev.ts` boots it.
+
+The same router therefore runs unchanged on Lambda, in the container, and under
+the local dev server — only the adapter differs.
+
+## Running the API locally (no container)
+
+For a fast inner loop you can run the backend directly on the host, no Docker
+required:
+
+```bash
+yarn dev:api   # backend HTTP server on http://localhost:3000 (the frontend's API fallback)
+yarn dev       # frontend dev server, in a second terminal
+```
+
+`yarn dev:api` bundles `src/dev.ts` with esbuild (already a dev-dependency — zero
+new deps) and runs it. For the fully containerized stack with the S3 mock, use
+`docker compose up` as above.
 
 ## Adding a new API route
 
-- **compose / Lambda**: just add the route in the handler — the backend is
-  reached directly, nothing else to change.
+- **compose / Lambda / local**: add the route in `src/router.ts` (and a handler
+  under `src/handlers/`) — all three transports pick it up, nothing else to change.
 - **single image**: also add a matching `location` block in
   `docker/nginx.single.conf` so nginx proxies the new path to the backend.
 

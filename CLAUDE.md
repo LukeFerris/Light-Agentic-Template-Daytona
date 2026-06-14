@@ -101,6 +101,7 @@ yarn test:coverage    # Run unit tests with coverage
 yarn e2e              # Run Playwright e2e tests against the containerized app
 yarn e2e:install      # One-time: install the Chromium build for Playwright
 yarn dev              # Start frontend dev server
+yarn dev:api          # Start the backend API locally (http://localhost:3000); pair with `yarn dev` for the full stack
 yarn type-check       # TypeScript type checking
 yarn lint             # Run ESLint
 yarn daytona:loop     # Post-commit: deploy HEAD to a Daytona sandbox, run unit+e2e, report back
