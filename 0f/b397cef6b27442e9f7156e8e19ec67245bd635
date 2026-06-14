@@ -1,0 +1,23 @@
+scripts/verify-setup.sh
+  s_c85cf5bd31e57f::t_3b3566a759bb88 15
+lint-staged.config.mjs
+  s_c85cf5bd31e57f::t_b4d86a96b1af90 1-76
+README.md
+  s_c85cf5bd31e57f::t_050559b41a17c0 40-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "0fb397cef6b27442e9f7156e8e19ec67245bd635",
+  "prompts": {},
+  "sessions": {
+    "s_c85cf5bd31e57f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "94da1c27-9b4f-4208-85ac-052ab0402bdf",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
