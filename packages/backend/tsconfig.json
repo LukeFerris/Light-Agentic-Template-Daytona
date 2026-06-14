@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"],
+    "types": ["node", "aws-lambda"],
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
