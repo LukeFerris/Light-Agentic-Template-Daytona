@@ -37,7 +37,8 @@ Concretely, when you pull something out, carry **all** of these along (see
 [The commit gates](#the-commit-gates) for what each one does):
 
 - `.husky/pre-commit` and `.husky/post-commit` — the hook entry points
-- the `lint-staged` block **and** `resolutions` block in `package.json`
+- `lint-staged.config.mjs` (the gate-orchestration config) **and** the
+  `resolutions` block in `package.json`
 - `scripts/check-patterns.sh`, `scripts/check-staged-coverage.mjs`,
   `scripts/security/*` — the gate implementations
 - `.secretlintrc.json`, `.secretlintignore`, `.osv-scanner.toml`,

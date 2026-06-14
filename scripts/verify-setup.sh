@@ -12,6 +12,7 @@ echo "Checking configuration files..."
 
 FILES=(
     "package.json"
+    "lint-staged.config.mjs"
     ".secretlintrc.json"
     ".secretlintignore"
     "eslint.config.js"

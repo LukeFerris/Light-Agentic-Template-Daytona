@@ -47,34 +47,6 @@
     "vitest": "*",
     "ws": "*"
   },
-  "lint-staged": {
-    "package.json": [
-      "bash -c 'yarn build'",
-      "bash -c 'yarn test:coverage'"
-    ],
-    "**/*.ts": [
-      "npx secretlint",
-      "bash scripts/security/check-sast.sh",
-      "npx eslint --max-warnings 0 --no-warn-ignored",
-      "bash -c 'yarn build'",
-      "bash -c 'yarn test:coverage'",
-      "bash -c 'yarn check-staged-coverage'"
-    ],
-    "**/*.tsx": [
-      "npx secretlint",
-      "bash scripts/security/check-sast.sh",
-      "npx eslint --max-warnings 0 --no-warn-ignored",
-      "bash -c 'yarn build'",
-      "bash -c 'yarn test:coverage'",
-      "bash -c 'yarn check-staged-coverage'"
-    ],
-    "**/yarn.lock": [
-      "bash scripts/security/check-dependencies.sh"
-    ],
-    "**/package-lock.json": [
-      "bash scripts/security/check-dependencies.sh"
-    ]
-  },
   "resolutions": {
     "brace-expansion": "5.0.6",
     "esbuild": "0.28.1",
