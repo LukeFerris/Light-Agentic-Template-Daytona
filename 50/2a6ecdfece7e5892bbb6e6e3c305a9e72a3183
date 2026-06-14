@@ -1,0 +1,21 @@
+.gitignore
+  s_1bdc3f10ea65ea::t_5afe4806f13b25 9
+packages/backend/tsconfig.json
+  s_1bdc3f10ea65ea::t_4320be612ef993 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "502a6ecdfece7e5892bbb6e6e3c305a9e72a3183",
+  "prompts": {},
+  "sessions": {
+    "s_1bdc3f10ea65ea": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a084c0d-c03e-4248-81f8-3caafa45bcca",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
