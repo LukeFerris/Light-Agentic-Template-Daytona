@@ -1,0 +1,21 @@
+packages/backend/src/cors.ts
+  s_c85cf5bd31e57f::t_86111dbe3f419c 6
+packages/frontend/src/App.tsx
+  s_c85cf5bd31e57f::t_c2a4b6b57cb20c 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "a0b4b31372ed35b765a87d7ac3dee8f91ae2aa9e",
+  "prompts": {},
+  "sessions": {
+    "s_c85cf5bd31e57f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "94da1c27-9b4f-4208-85ac-052ab0402bdf",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
