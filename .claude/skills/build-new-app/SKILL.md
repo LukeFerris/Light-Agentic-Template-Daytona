@@ -124,6 +124,17 @@ Daytona policy** section in the README (and `$TEMPLATE_DIR/docs/daytona-loop.md`
   dependency up front: *incidental* services are **mocked** behind an env-driven
   endpoint switch (S3 → MinIO in `s3Client.ts` is the gold standard;
   `anthropicClient.ts` mirrors it for the LLM), and the loop runs against the mock.
+- **Confirm the mock-vs-real split with the engineer before you build it.** This
+  classification is never made silently. At the **start** of the work — before the
+  first test exists — present each external service the feature touches, which
+  bucket you propose for it (mock as plumbing vs. call for real as the thing under
+  test), your one-line reasoning per service, and what the per-commit loop will and
+  won't actually exercise as a result. Get their explicit yes (or correction)
+  before implementing. "Is this service the thing under test?" is a product
+  judgement the engineer owns — guessing wrong silently green-lights a suite that
+  never tests what matters, or drops a key/cost/flake onto the per-commit loop. The
+  decision test and full confirmation checklist live in
+  `$TEMPLATE_DIR/docs/external-services.md`.
 - **Essential real-service tests** (real LLM, etc.) live in a **separate tier**, gated
   behind both a capability key and an intent flag (e.g. `ANTHROPIC_API_KEY` +
   `RUN_LLM_E2E=1`); inside the loop they **skip-loud** — never silently pass, never

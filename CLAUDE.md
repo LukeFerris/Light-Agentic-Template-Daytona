@@ -173,6 +173,13 @@ causes, cost per run) live in [docs/daytona-loop.md](docs/daytona-loop.md).
 **The per-commit Daytona loop must stay deterministic, key-free, and fast.**
 Everything else follows:
 
+- **Confirm the mock-vs-real split with the engineer first.** The classification
+  below is **never made silently**. At the start of the work — before the first
+  test exists — present each external service the feature touches, the bucket you
+  propose for it (mock-as-plumbing vs. call-for-real-as-the-thing-under-test), your
+  one-line reasoning, and what the per-commit loop will and won't actually exercise
+  as a result; get the engineer's explicit yes or correction before building. "Is
+  this service the thing under test?" is a product judgement the engineer owns.
 - **No real external services on the per-commit path.** Classify every external
   dependency up front ([docs/external-services.md](docs/external-services.md)):
   *incidental* services are **mocked** behind an env-driven endpoint switch

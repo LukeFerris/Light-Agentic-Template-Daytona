@@ -32,6 +32,34 @@ Ask one question about each external service:
   in the gate, *and* keep a small real-call tier for the behavior you can't fake.
   Do both, each in its own tier.
 
+## Confirm the split with the engineer before you build it
+
+This decision is **never made silently.** Before you write the tests or wire the
+client factory, stop and **confirm the mock-vs-real split with the engineer**,
+explaining your testing thinking. The classification looks obvious to whoever
+applies the test above, but "is this service the thing under test?" is a product
+judgement the engineer owns — a service you read as incidental plumbing may be
+exactly the behavior they wanted exercised for real, and vice versa. Getting it
+wrong is expensive in both directions: mock something essential and the suite
+goes green without ever testing the thing that matters; call something incidental
+for real and you've put a key, a cost, and a flake source on the per-commit loop.
+
+So, **at the start of the work** — before the first test exists — present:
+
+1. **Each external service the feature touches**, and which bucket you propose
+   for it: *mock it (plumbing, in the per-commit gate)* or *call it for real
+   (the thing under test, in a separate gated tier)* — or *both*.
+2. **Your reasoning** for each — i.e. your answer to the decision test above, in
+   one line per service ("S3 is just where the bytes land → mock; the summariser
+   prompt quality is the feature → real tier").
+3. **The consequence** of the split: what the per-commit Daytona loop will and
+   won't actually exercise, and where the real behavior gets covered.
+
+Then get the engineer's explicit yes (or their correction) **before** building.
+Only once the split is confirmed do you implement Pattern A / Pattern B below.
+Treat a changed answer later (a service moving buckets) as the same kind of
+decision — re-confirm, don't quietly re-classify.
+
 ## Pattern A — Mockable services (the default)
 
 The selection between mock and real is **config, never code.** A single client
@@ -106,6 +134,7 @@ key. The **real** behavior is asserted only by the gated
 
 ## One line to carry to your own repo
 
-> Mock everything in the per-commit gate via a config-only switch; let real
-> external calls in only through a separately-triggered, double-gated tier that
-> skips loud and fails loud — and write down which bucket each service is in.
+> Confirm the mock-vs-real split with the engineer up front; then mock everything
+> in the per-commit gate via a config-only switch, and let real external calls in
+> only through a separately-triggered, double-gated tier that skips loud and fails
+> loud — and write down which bucket each service is in.

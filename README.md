@@ -115,7 +115,8 @@ deterministic, key-free, and fast.** Everything below follows from it.
    traces. On FAIL you read the returned logs/traces under `.daytona/runs/<runId>/`
    and fix before re-committing. See [docs/daytona-loop.md](docs/daytona-loop.md).
 3. **No real external services on the per-commit path.** External dependencies
-   are classified up front (see
+   are classified up front — and the classification is **confirmed with the
+   engineer before any test is written**, never decided silently (see
    [docs/external-services.md](docs/external-services.md)):
    - **Incidental → mock it.** Mock the service behind an env-driven endpoint
      switch (S3 → MinIO in `s3Client.ts` is the gold standard;
