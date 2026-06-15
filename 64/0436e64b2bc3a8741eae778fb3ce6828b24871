@@ -1,0 +1,38 @@
+scripts/run-llm-e2e.mjs
+  s_631f4afca74b99::t_6feab703030e9c 1-37
+.env.example
+  s_631f4afca74b99::t_0e5e93939753a3 30-33
+scripts/lib/secrets.mjs
+  s_631f4afca74b99::t_f920d53c06a8bb 1-95
+packages/backend/src/services/llm/anthropicClient.test.ts
+  s_631f4afca74b99::t_ad4a45e4c20bf1 63-68
+  s_631f4afca74b99::t_634391a6319a16 41-50
+  s_631f4afca74b99::t_232e19014943e8 85-99
+docker-compose.yml
+  s_631f4afca74b99::t_acd8c4ce8be99a 28-36
+package.json
+  s_631f4afca74b99::t_04d6ef2db2d914 21
+packages/backend/src/services/llm/anthropicClient.ts
+  s_631f4afca74b99::t_851743b1d1a674 35-39,42
+  s_631f4afca74b99::t_644ef9ff4bde8f 57-59
+  s_631f4afca74b99::t_40a631888bef3b 74-77
+scripts/daytona/harness.mjs
+  s_631f4afca74b99::t_e38e8670f5599e 62-67
+  s_631f4afca74b99::t_836b57b45a588d 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "640436e64b2bc3a8741eae778fb3ce6828b24871",
+  "prompts": {},
+  "sessions": {
+    "s_631f4afca74b99": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7323d6dc-800b-4b54-9994-056a72b86ecb",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
