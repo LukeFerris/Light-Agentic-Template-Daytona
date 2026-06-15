@@ -41,6 +41,7 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { keychainSecret, loadDotenvFrom } from '../lib/secrets.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], {
@@ -58,47 +59,14 @@ const MAIN_ROOT = dirname(
   ).trim(),
 );
 
-/** Parse a gitignored .env (KEY=VALUE lines) without taking a dotenv dependency. */
-function loadDotenvFrom(root) {
-  const path = join(root, '.env');
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, 'utf8').split('\n')) {
-    const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)\s*$/);
-    if (!m || line.trimStart().startsWith('#')) continue;
-    const key = m[1];
-    const val = m[2].replace(/^['"]|['"]$/g, '');
-    if (!(key in process.env)) process.env[key] = val;
-  }
-}
-// Worktree .env wins as a local override (first-set wins); the main work tree's
-// .env is the shared fallback so card worktrees inherit the key.
+// Resolve config in order: process env → gitignored .env (worktree, then main
+// work tree) → macOS Keychain. The worktree .env wins as a local override
+// (first-set wins) and the main work tree's .env is the shared fallback, so card
+// worktrees inherit the key; the Keychain is the final fallback so one key can be
+// shared machine-wide with no per-repo .env. (Shared with playwright.config.ts
+// via scripts/lib/secrets.mjs.)
 loadDotenvFrom(REPO_ROOT);
 if (MAIN_ROOT !== REPO_ROOT) loadDotenvFrom(MAIN_ROOT);
-
-/**
- * Read a secret from the macOS login Keychain (a generic password whose service
- * name is `service`). Returns the trimmed value, or null when the item is
- * absent, `security` isn't available, or the platform isn't macOS. Never throws.
- * @param {string} service - The Keychain item's service name (`-s`).
- * @returns {string|null} The stored secret, or null when unavailable.
- */
-function keychainSecret(service) {
-  if (process.platform !== 'darwin') return null;
-  try {
-    const val = execFileSync(
-      'security',
-      ['find-generic-password', '-s', service, '-w'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
-    ).trim();
-    return val || null;
-  } catch {
-    return null; // item not found (non-zero exit) or `security` unavailable
-  }
-}
-
-// Final fallback: the macOS login Keychain, so one key can be shared across every
-// repo with no per-repo .env. Precedence: process env > worktree .env >
-// main-work-tree .env > Keychain.
 if (!process.env.DAYTONA_API_KEY) {
   const fromKeychain = keychainSecret('DAYTONA_API_KEY');
   if (fromKeychain) process.env.DAYTONA_API_KEY = fromKeychain;

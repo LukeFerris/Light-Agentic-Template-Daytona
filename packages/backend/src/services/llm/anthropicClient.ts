@@ -32,10 +32,14 @@ const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
 export function buildAnthropicConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): ClientOptions {
-  const baseURL = env.ANTHROPIC_BASE_URL;
+  // Treat an empty string the same as unset: container/compose env passes
+  // absent variables through as "" (e.g. ANTHROPIC_* defaulted to empty on the
+  // deterministic path), and "" is not a usable endpoint or key. `||` collapses
+  // both to the unset behavior.
+  const baseURL = env.ANTHROPIC_BASE_URL || undefined;
   // A mock endpoint needs no real key; fall back to a placeholder so the SDK
   // constructor is happy. The real path always carries a genuine key.
-  const apiKey = env.ANTHROPIC_API_KEY ?? 'mock-endpoint-no-key-required';
+  const apiKey = env.ANTHROPIC_API_KEY || 'mock-endpoint-no-key-required';
 
   if (baseURL) {
     return { apiKey, baseURL };
@@ -50,7 +54,9 @@ export function buildAnthropicConfig(
  * @returns Model id from `ANTHROPIC_MODEL`, defaulting to {@link DEFAULT_MODEL}
  */
 export function getModelName(env: NodeJS.ProcessEnv = process.env): string {
-  return env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
+  // `||` so an empty ANTHROPIC_MODEL (passed through by compose) falls back to
+  // the default rather than becoming an empty model id.
+  return env.ANTHROPIC_MODEL || DEFAULT_MODEL;
 }
 
 /**
@@ -65,7 +71,10 @@ export function getModelName(env: NodeJS.ProcessEnv = process.env): string {
  * @returns Whether an LLM backend (real or mock) is available
  */
 export function isLlmConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(env.ANTHROPIC_API_KEY ?? env.ANTHROPIC_BASE_URL);
+  // `||` so empty-string env (compose passes absent vars as "") counts as unset:
+  // an empty key with a real mock endpoint is still configured, and a wholly
+  // empty env is not.
+  return Boolean(env.ANTHROPIC_API_KEY || env.ANTHROPIC_BASE_URL);
 }
 
 let cachedClient: Anthropic | undefined;

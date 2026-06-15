@@ -18,7 +18,7 @@
     "dev": "yarn workspace frontend dev",
     "dev:api": "yarn workspace backend dev",
     "e2e": "playwright test",
-    "e2e:llm": "RUN_LLM_E2E=1 playwright test e2e/llm.spec.ts",
+    "e2e:llm": "node scripts/run-llm-e2e.mjs",
     "e2e:install": "playwright install chromium",
     "e2e:report": "playwright show-report",
     "daytona:loop": "node scripts/daytona/harness.mjs",

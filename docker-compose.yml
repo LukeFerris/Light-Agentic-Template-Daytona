@@ -25,6 +25,15 @@ services:
       S3_BUCKET: "app-bucket"
       AWS_ACCESS_KEY_ID: "minioadmin"
       AWS_SECRET_ACCESS_KEY: "minioadmin"
+      # --- LLM tier (real Anthropic), see docs/external-services.md ---
+      # Forwarded from the host, empty unless set. The gated real-LLM e2e tier
+      # (`yarn e2e:llm`) resolves ANTHROPIC_API_KEY on the host (env/.env/Keychain)
+      # and it flows through here to the backend. Empty => the backend reports the
+      # LLM as not configured, so a regular `yarn e2e` stays deterministic and
+      # key-free. ANTHROPIC_BASE_URL points the client at a local mock instead.
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      ANTHROPIC_BASE_URL: "${ANTHROPIC_BASE_URL:-}"
+      ANTHROPIC_MODEL: "${ANTHROPIC_MODEL:-}"
     ports:
       # Published so the browser (running on the host) can reach the API.
       - "3000:3000"

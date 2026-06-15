@@ -38,6 +38,16 @@ describe('buildAnthropicConfig', () => {
     expect(config).toEqual({ apiKey: 'sk-real' });
     expect(config).not.toHaveProperty('baseURL');
   });
+
+  it('treats empty-string env (compose passthrough) as unset', () => {
+    const config = buildAnthropicConfig({
+      ANTHROPIC_API_KEY: '',
+      ANTHROPIC_BASE_URL: '',
+    });
+
+    expect(config).toEqual({ apiKey: 'mock-endpoint-no-key-required' });
+    expect(config).not.toHaveProperty('baseURL');
+  });
 });
 
 describe('getModelName', () => {
@@ -49,6 +59,12 @@ describe('getModelName', () => {
 
   it('defaults to a small fast model when ANTHROPIC_MODEL is unset', () => {
     expect(getModelName({})).toBe('claude-haiku-4-5-20251001');
+  });
+
+  it('defaults when ANTHROPIC_MODEL is an empty string', () => {
+    expect(getModelName({ ANTHROPIC_MODEL: '' })).toBe(
+      'claude-haiku-4-5-20251001',
+    );
   });
 });
 
@@ -65,6 +81,21 @@ describe('isLlmConfigured', () => {
 
   it('is false when neither key nor endpoint is present', () => {
     expect(isLlmConfigured({})).toBe(false);
+  });
+
+  it('is false when both env vars are empty strings (compose passthrough)', () => {
+    expect(
+      isLlmConfigured({ ANTHROPIC_API_KEY: '', ANTHROPIC_BASE_URL: '' }),
+    ).toBe(false);
+  });
+
+  it('is true when the key is empty but a mock endpoint is set', () => {
+    expect(
+      isLlmConfigured({
+        ANTHROPIC_API_KEY: '',
+        ANTHROPIC_BASE_URL: 'http://mock-llm:4010',
+      }),
+    ).toBe(true);
   });
 });
 
