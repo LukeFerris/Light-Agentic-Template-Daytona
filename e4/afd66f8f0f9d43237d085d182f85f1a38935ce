@@ -1,0 +1,19 @@
+scripts/verify-setup.sh
+  s_8c33979e9c1503::t_918e1f0f27da4d 19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "e4afd66f8f0f9d43237d085d182f85f1a38935ce",
+  "prompts": {},
+  "sessions": {
+    "s_8c33979e9c1503": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f11b9746-cf04-4743-8798-70671bd55c8b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
