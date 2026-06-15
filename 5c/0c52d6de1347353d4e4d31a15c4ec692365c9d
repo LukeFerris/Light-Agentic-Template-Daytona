@@ -1,0 +1,19 @@
+.claude/skills/build-new-app/SKILL.md
+  s_141dff324ac923::t_d3165f5b372791 145-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5c0c52d6de1347353d4e4d31a15c4ec692365c9d",
+  "prompts": {},
+  "sessions": {
+    "s_141dff324ac923": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "025c034a-ce19-49e4-b40b-f2fa05b52bc0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
