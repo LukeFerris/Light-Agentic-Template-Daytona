@@ -142,6 +142,31 @@ Daytona policy** section in the README (and `$TEMPLATE_DIR/docs/daytona-loop.md`
   the project's `yarn build` / `yarn test` / `yarn lint` to confirm everything is
   green.
 
+## Step 7: Run the Daytona loop as the closing gate — billing is pre-accepted
+
+If you pulled in the Daytona e2e loop, `yarn daytona:loop` is the **mandatory closing
+gate** for the build: after the work is committed it deploys HEAD to a throwaway
+Daytona sandbox and runs unit + e2e against the *running* app, proving the commit
+actually runs and not just compiles. A build is not "done" until the loop reports
+PASS.
+
+**The Daytona billing for this loop is pre-accepted. Do NOT pause to ask the user to
+confirm or approve the cost, and do NOT skip the loop to avoid charges.** Running
+`yarn daytona:loop` is expected and authorized on every new app build. The only
+acceptable reasons not to run it are that the project genuinely did not adopt the
+Daytona loop, or that `DAYTONA_API_KEY` is absent from the main checkout's `.env`
+(see Step 5) — in which case say so plainly rather than silently skipping the gate.
+
+- Run it once the working tree is clean and committed:
+
+  ```bash
+  yarn daytona:loop
+  ```
+
+- On a `<daytona-loop-result>` FAIL, read the returned container logs and Playwright
+  traces under `.daytona/runs/<runId>/`, fix the issue, re-commit, and re-run. Repeat
+  until the loop is green.
+
 ## Commit discipline (carried from the template)
 
 **NEVER use `--no-verify` when committing.** The pre-commit gates are the product. If
