@@ -1,0 +1,19 @@
+tsconfig.json
+  s_e62afe74db4837::t_c86815c768a7e8 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "9b9170411bae580cd0cffb275b744e19e4a46402",
+  "prompts": {},
+  "sessions": {
+    "s_e62afe74db4837": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fac2ff1b-be73-4249-9c4e-85262b6286cd",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
