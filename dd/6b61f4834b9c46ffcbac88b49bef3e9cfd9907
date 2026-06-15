@@ -1,0 +1,19 @@
+docs/slides.md
+  s_cc3bc628182849::t_beff016308e662 1-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "dd6b61f4834b9c46ffcbac88b49bef3e9cfd9907",
+  "prompts": {},
+  "sessions": {
+    "s_cc3bc628182849": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eab3db1d-effd-4032-a216-daeabd3e8a73",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
