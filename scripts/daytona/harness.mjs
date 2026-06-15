@@ -17,9 +17,11 @@
 //     artifacts -> delete sandbox.
 //
 // Usage:  node scripts/daytona/harness.mjs [--commit <sha>]
-//   DAYTONA_API_KEY        required; read from the env or a gitignored .env. When
-//                          run inside a per-card git worktree (which has no .env),
-//                          it is resolved from the MAIN work tree's .env.
+//   DAYTONA_API_KEY        required. Resolved in this order: process env, a
+//                          gitignored .env (the worktree's, then the MAIN work
+//                          tree's), then the macOS login Keychain (a generic
+//                          password with service name DAYTONA_API_KEY). One key
+//                          can thus be shared machine-wide with no per-repo .env.
 //   DAYTONA_CPU/MEMORY/DISK  snapshot resources (default 2 / 4 / 5)
 //   REBUILD_SNAPSHOT=1      force a fresh base snapshot
 //   KEEP_SANDBOX=1          skip teardown (debugging)
@@ -72,6 +74,35 @@ function loadDotenvFrom(root) {
 // .env is the shared fallback so card worktrees inherit the key.
 loadDotenvFrom(REPO_ROOT);
 if (MAIN_ROOT !== REPO_ROOT) loadDotenvFrom(MAIN_ROOT);
+
+/**
+ * Read a secret from the macOS login Keychain (a generic password whose service
+ * name is `service`). Returns the trimmed value, or null when the item is
+ * absent, `security` isn't available, or the platform isn't macOS. Never throws.
+ * @param {string} service - The Keychain item's service name (`-s`).
+ * @returns {string|null} The stored secret, or null when unavailable.
+ */
+function keychainSecret(service) {
+  if (process.platform !== 'darwin') return null;
+  try {
+    const val = execFileSync(
+      'security',
+      ['find-generic-password', '-s', service, '-w'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    ).trim();
+    return val || null;
+  } catch {
+    return null; // item not found (non-zero exit) or `security` unavailable
+  }
+}
+
+// Final fallback: the macOS login Keychain, so one key can be shared across every
+// repo with no per-repo .env. Precedence: process env > worktree .env >
+// main-work-tree .env > Keychain.
+if (!process.env.DAYTONA_API_KEY) {
+  const fromKeychain = keychainSecret('DAYTONA_API_KEY');
+  if (fromKeychain) process.env.DAYTONA_API_KEY = fromKeychain;
+}
 
 // Bumping this forces every snapshot to rebuild even if deps are unchanged —
 // use it when the snapshot Dockerfile's *semantics* change in a way the hash
@@ -208,8 +239,11 @@ async function main() {
     console.error(
       'DAYTONA_API_KEY is not set — the Daytona loop must NOT be run locally without it.\n' +
         'This loop deploys and tests in an isolated Daytona cloud sandbox, not on your machine.\n' +
-        'Put DAYTONA_API_KEY in the MAIN work tree\'s .env (see .env.example / docs/daytona-loop.md); ' +
-        'card worktrees inherit it automatically.',
+        'Provide it any of these ways (checked in this order): export DAYTONA_API_KEY in your environment, ' +
+        'put it in a gitignored .env in the MAIN work tree (card worktrees inherit it), or store it once in ' +
+        'the macOS login Keychain:\n' +
+        '  security add-generic-password -a "$USER" -s DAYTONA_API_KEY -w \'dtn_...\'\n' +
+        'See .env.example / docs/daytona-loop.md.',
     );
     process.exit(2);
   }

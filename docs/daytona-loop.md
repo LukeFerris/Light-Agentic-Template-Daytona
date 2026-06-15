@@ -20,6 +20,12 @@ yarn daytona:loop             # runs the loop for HEAD
 yarn daytona:loop --commit <sha>   # or a specific commit
 ```
 
+The key is resolved in order: **process env → gitignored `.env` (worktree, then
+main checkout) → macOS login Keychain**. So instead of a `.env` you can `export
+DAYTONA_API_KEY` (e.g. in `~/.zshenv`) or store it once in the Keychain
+(`security add-generic-password -a "$USER" -s DAYTONA_API_KEY -w 'dtn_...'`) to
+share one key across every repo with no per-repo `.env`.
+
 First run bakes the base snapshot **and** has to wait for it to warm onto a
 runner — measured at ~4–5 min of "No available runners" retries before the first
 boot, which the harness rides out automatically. Once warm, the same snapshot

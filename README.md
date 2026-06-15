@@ -140,11 +140,14 @@ deterministic, key-free, and fast.** Everything below follows from it.
    so it matches the browsers baked into the Daytona base snapshot — read
    [docs/e2e-testing.md](docs/e2e-testing.md) before bumping it.
 
-**Credentials live in the main work tree.** `DAYTONA_API_KEY` (and optional
-`DAYTONA_*` overrides / `DAYTONA_POST_COMMIT`) go in a gitignored `.env` in the
-**main checkout**, never in a card worktree. Both `yarn daytona:loop` and the
-post-commit hook resolve `.env` from the main work tree, so the loop runs
-identically from `main` or any `card/<short-id>` worktree.
+**Finding `DAYTONA_API_KEY`.** The loop resolves it in order — **process env →
+gitignored `.env` (worktree, then main checkout) → macOS login Keychain**. So
+share one key machine-wide via your environment (e.g. export it in `~/.zshenv`)
+or the Keychain (`security add-generic-password -a "$USER" -s DAYTONA_API_KEY -w
+'dtn_...'`), or keep it in a gitignored `.env` in the **main checkout** — never a
+card worktree; both `yarn daytona:loop` and the post-commit hook read the main
+work tree's `.env`, so worktrees inherit it. Same for the optional `DAYTONA_*`
+overrides / `DAYTONA_POST_COMMIT`.
 
 ## Documentation
 

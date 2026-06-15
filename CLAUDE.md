@@ -83,13 +83,20 @@ The loop is the inner gate that proves a commit actually runs, not just compiles
 See [docs/daytona-loop.md](docs/daytona-loop.md) for the full design, the failure
 report format, and the measured numbers.
 
-**Credentials live in the main work tree.** `DAYTONA_API_KEY` (and the optional
-`DAYTONA_*` overrides / `DAYTONA_POST_COMMIT`) belong in a gitignored `.env` in
-the **main checkout**, never in a card worktree (worktrees carry no `.env`). Both
-`yarn daytona:loop` and the post-commit hook resolve `.env` from the main work
-tree (the parent of the shared `.git` dir), so the loop runs identically whether
-you invoke it from `main` or from a `card/<short-id>` worktree — you do not need
-to copy `.env` into each worktree.
+**Finding `DAYTONA_API_KEY`.** The loop resolves it in order: **process env →
+gitignored `.env` (worktree, then main checkout) → macOS login Keychain**. Pick
+whichever fits:
+- **Environment** — export `DAYTONA_API_KEY` (e.g. in `~/.zshenv`) to share one
+  key across every repo on the machine.
+- **`.env` in the main checkout** — never a card worktree (worktrees carry no
+  `.env`). Both `yarn daytona:loop` and the post-commit hook read `.env` from the
+  main work tree (the parent of the shared `.git` dir), so the loop runs
+  identically from `main` or any `card/<short-id>` worktree — no per-worktree copy.
+- **macOS login Keychain** — one key, machine-wide, no plaintext on disk:
+  `security add-generic-password -a "$USER" -s DAYTONA_API_KEY -w 'dtn_...'`.
+
+The optional `DAYTONA_*` overrides / `DAYTONA_POST_COMMIT` are read from the env
+or the main checkout's `.env` the same way.
 
 ## Key Commands
 
