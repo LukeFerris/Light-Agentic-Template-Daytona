@@ -1,0 +1,33 @@
+docs/external-services.md
+  s_08f9793c494e7b::t_749da9f9290002 18-23
+docs/integration-vs-e2e.md
+  s_08f9793c494e7b::t_9ae8f972233bba 1-99
+docs/daytona-loop.md
+  s_08f9793c494e7b::t_16b89260d0c0cf 15-22
+README.md
+  s_08f9793c494e7b::t_d907aadf920c32 108-114
+  s_08f9793c494e7b::t_c35cf4eec9bf20 169
+CLAUDE.md
+  s_08f9793c494e7b::t_49efc42d482dd9 181-187
+docs/e2e-testing.md
+  s_08f9793c494e7b::t_6b692e1b8b36a6 9-16
+docs/test-strategy.md
+  s_08f9793c494e7b::t_bf8fc51a507b1a 50-55
+  s_08f9793c494e7b::t_4fafd6a3ffccc5 13,18-20,22-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "de2f8bbc967b8a413b759bc58ba7e75f2249062d",
+  "prompts": {},
+  "sessions": {
+    "s_08f9793c494e7b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87a2932-b942-467c-a713-74babee9619b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
