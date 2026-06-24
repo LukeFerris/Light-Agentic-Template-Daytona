@@ -1,0 +1,27 @@
+CLAUDE.md
+  s_68f92fa058ae80::t_acccc90d21d63a 65-71
+  s_68f92fa058ae80::t_6676d6b87cd786 169-174
+README.md
+  s_68f92fa058ae80::t_ba1eb04a84797a 161
+  s_68f92fa058ae80::t_2b173dd2a6589b 108-114
+docs/test-strategy.md
+  s_68f92fa058ae80::t_ddb871d60120b8 1-97
+docs/e2e-testing.md
+  s_68f92fa058ae80::t_773196ab18f3aa 9-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "fc4c02a80ea5823613f1bf6e7282ca435b7c4336",
+  "prompts": {},
+  "sessions": {
+    "s_68f92fa058ae80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4ead2b48-3d12-4401-9a65-3774ac2ed3d5",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Luke Ferris <luke.ferris@gmail.com>"
+    }
+  }
+}
