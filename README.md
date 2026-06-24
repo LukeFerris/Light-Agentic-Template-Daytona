@@ -105,8 +105,13 @@ everything it created. Local/dev runs the identical images via `docker compose u
 The e2e story has a single guiding rule: **the per-commit Daytona loop must stay
 deterministic, key-free, and fast.** Everything below follows from it.
 
-1. **Write e2e as part of TDD.** For every feature, write Playwright e2e specs
-   (`*.spec.ts` in `e2e/`) alongside the unit tests (`*.test.ts`), not after.
+1. **Write the tests the card needs, TDD-first.** The required tests depend on
+   the card — unit (`*.test.ts`), Playwright e2e (`*.spec.ts` in `e2e/`), and the
+   occasional one-off "did the thing I just deployed work?" check are a *per-card
+   mix*, decided up front and **confirmed with the engineer** before the first
+   test exists (see [docs/test-strategy.md](docs/test-strategy.md)). Whatever
+   deterministic tests the card needs, write them alongside the feature, not
+   after — never let "fewer types" weaken the loop for the types you keep.
 2. **The loop deploys, it doesn't just compile.** After a commit, `yarn
    daytona:loop` boots a warm BASE snapshot, injects the just-committed source,
    boots the app (frontend + backend + the MinIO S3 mock) as localhost
@@ -153,6 +158,7 @@ overrides / `DAYTONA_POST_COMMIT`.
 
 - [CLAUDE.md](CLAUDE.md) — how an agent works in this template (read first)
 - [docs/daytona-loop.md](docs/daytona-loop.md) — the per-commit e2e loop: design, failure-report format, measured numbers
+- [docs/test-strategy.md](docs/test-strategy.md) — which tests a card needs (unit / e2e / one-off), decided up front with the engineer
 - [docs/external-services.md](docs/external-services.md) — mock-vs-call-for-real policy (read before adding any external dependency)
 - [docs/e2e-testing.md](docs/e2e-testing.md) — Playwright conventions, failure artifacts, Daytona alignment
 - [docs/playwright-av-testing.md](docs/playwright-av-testing.md) — asserting on audio, animation, and video

@@ -62,9 +62,13 @@ acceptable.
 This template enforces a test-driven, container-first loop. As the agent picking
 up this repo, follow it by default:
 
-1. **Write tests as part of TDD** — for every feature, write both **unit tests**
-   (`*.test.ts`, vitest, next to the code) *and* **Playwright e2e tests**
-   (`*.spec.ts` in `e2e/`). Write them alongside the feature, not after.
+1. **Write the tests this card needs, TDD-first — decided up front.** The
+   required tests depend on the card: **unit tests** (`*.test.ts`, vitest, next
+   to the code), **Playwright e2e tests** (`*.spec.ts` in `e2e/`), and the
+   occasional one-off "did the thing I just deployed work?" check are a *per-card
+   mix*, not a fixed checklist. Decide that mix and **confirm it with the
+   engineer before the first test exists** ([docs/test-strategy.md](docs/test-strategy.md));
+   then write whatever the card needs alongside the feature, not after.
 2. **Commit** the work (the project requires a clean working tree after every
    completed piece of work — see Working Guidelines).
 3. **The post-commit Daytona loop deploys and tests it.** After a successful
@@ -162,6 +166,12 @@ causes, cost per run) live in [docs/daytona-loop.md](docs/daytona-loop.md).
 
 ## Testing
 
+- **Which tests a card needs is a per-card decision, made up front and confirmed
+  with the engineer** — not every card needs the same mix of unit, e2e, and
+  one-off "did it deploy?" checks. See [docs/test-strategy.md](docs/test-strategy.md).
+  It is the sibling of the mock-vs-real decision in
+  [docs/external-services.md](docs/external-services.md): decide both before the
+  first test exists.
 - **Unit tests** (`*.test.ts`) live next to the code under `packages/` and run
   with vitest. Coverage thresholds are enforced at commit time.
 - **E2e tests** (`*.spec.ts`) live in the top-level `e2e/` directory and run
