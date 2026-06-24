@@ -178,6 +178,13 @@ causes, cost per run) live in [docs/daytona-loop.md](docs/daytona-loop.md).
   with Playwright against the containerized app. Write them as part of TDD,
   alongside the feature. See [docs/e2e-testing.md](docs/e2e-testing.md) for
   conventions, the failure-artifact setup, and Daytona-loop alignment.
+- **These specs are _integration_ tests, not full e2e.** In the per-commit loop
+  they drive an app whose external services are **mocked**, so a green run proves
+  your seams against stand-ins — scoped to what the card changed, on
+  locally-staged data. **Full e2e** (nothing mocked, real providers) is a
+  separate gated tier off the loop. The distinction — and the "spin up a targeted
+  integration test of the change, not a regression run of everything" framing —
+  is [docs/integration-vs-e2e.md](docs/integration-vs-e2e.md).
 - `@playwright/test` is pinned (not `*`) so it matches the browsers baked into
   the Daytona base image — see the doc before bumping it.
 - **Post-commit loop**: after a commit, `yarn daytona:loop` deploys it to a

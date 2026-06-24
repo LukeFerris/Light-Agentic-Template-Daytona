@@ -15,6 +15,12 @@ This doc is the policy. The two existing service docs are its worked examples:
 If you are taking inspiration from this template in another repo, copy this
 policy first, then the example that matches your service.
 
+This mock-vs-real decision is the **same line** the test tiers are named for,
+seen from the service's side: mocking incidental services (Pattern A) is exactly
+what makes the per-commit loop _integration_ testing, and the required-real tier
+(Pattern B) is where _full e2e_ lives. See
+[integration-vs-e2e.md](integration-vs-e2e.md).
+
 ## The decision test
 
 Ask one question about each external service:

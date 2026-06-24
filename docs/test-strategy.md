@@ -10,14 +10,18 @@ So the **test plan is one decision, made deliberately at the start of the work
 and confirmed with the engineer** — never defaulted to whatever the template's
 reflex happens to be, and never skipped silently.
 
-This doc is the sibling of [external-services.md](external-services.md):
+This doc is one of three siblings:
 
 - **external-services.md** decides, for each external service the card touches,
   **mock it or call it for real**.
 - **this doc** decides, for each card, **which _kinds_ of tests prove it's done**.
+- **[integration-vs-e2e.md](integration-vs-e2e.md)** names **what the per-commit
+  loop you write them for actually is** — _integration_ testing (your seams
+  against mocked deps), distinct from _full e2e_ (nothing mocked).
 
-Both are "decide up front, confirm with the engineer, write it down." Make both
-decisions before the first test exists.
+The first two are "decide up front, confirm with the engineer, write it down" —
+make both decisions before the first test exists. The third is the framing those
+decisions sit inside.
 
 ## The one invariant this never relaxes
 
@@ -42,6 +46,12 @@ for the types you keep.
 Most cards are a **mix**: a deploy card still unit-tests the pure logic it added
 *and* does a one-off check of the running thing; an LLM feature has unit tests in
 the loop *and* a real-call spec in the gated tier off it.
+
+The **Integration / e2e** row is named carefully: those Playwright `*.spec.ts`
+run in the loop **against a mocked app**, so they are _integration_ tests — your
+seams against stand-in dependencies — even though a browser drives them. A
+**full e2e** run (nothing mocked, real providers) is a separate gated tier, not
+this row. See [integration-vs-e2e.md](integration-vs-e2e.md) for the distinction.
 
 ## Deciding (and confirming) up front
 
