@@ -105,6 +105,13 @@ everything it created. Local/dev runs the identical images via `docker compose u
 The e2e story has a single guiding rule: **the per-commit Daytona loop must stay
 deterministic, key-free, and fast.** Everything below follows from it.
 
+> A naming note worth internalising first: because the loop mocks every external
+> service, what it runs is **integration** testing — your seams against stand-in
+> deps, scoped to the change — not **full e2e** (nothing mocked, which is a
+> separate gated tier). The Playwright specs are integration tests despite the
+> `e2e/` name. The distinction is in
+> [docs/integration-vs-e2e.md](docs/integration-vs-e2e.md).
+
 1. **Write the tests the card needs, TDD-first.** The required tests depend on
    the card — unit (`*.test.ts`), Playwright e2e (`*.spec.ts` in `e2e/`), and the
    occasional one-off "did the thing I just deployed work?" check are a *per-card
@@ -159,6 +166,7 @@ overrides / `DAYTONA_POST_COMMIT`.
 - [CLAUDE.md](CLAUDE.md) — how an agent works in this template (read first)
 - [docs/daytona-loop.md](docs/daytona-loop.md) — the per-commit e2e loop: design, failure-report format, measured numbers
 - [docs/test-strategy.md](docs/test-strategy.md) — which tests a card needs (unit / e2e / one-off), decided up front with the engineer
+- [docs/integration-vs-e2e.md](docs/integration-vs-e2e.md) — what the per-commit loop actually is: integration testing (mocked deps) vs. full e2e (nothing mocked)
 - [docs/external-services.md](docs/external-services.md) — mock-vs-call-for-real policy (read before adding any external dependency)
 - [docs/e2e-testing.md](docs/e2e-testing.md) — Playwright conventions, failure artifacts, Daytona alignment
 - [docs/playwright-av-testing.md](docs/playwright-av-testing.md) — asserting on audio, animation, and video

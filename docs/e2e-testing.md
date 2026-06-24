@@ -6,6 +6,14 @@ alongside (or before) the feature, make it green locally, and the Daytona
 per-commit loop re-runs the same tests in a sandbox and feeds artifacts back on
 failure.
 
+> **These specs are _integration_ tests, despite the file name.** In the
+> per-commit loop they drive an app whose external services are **mocked** (S3 →
+> MinIO, the LLM → a mock endpoint), so a green run proves your seams hold
+> against stand-ins — not that the system works against real providers. That
+> "nothing-mocked" proof is a separate _full-e2e_ tier. The naming and the line
+> between the two live in [integration-vs-e2e.md](integration-vs-e2e.md); this
+> doc is the **how-to-write-the-spec** mechanics, which are identical either way.
+
 > Not every card needs an e2e spec — which tests a card needs (unit, e2e, or a
 > one-off "did it deploy?" check) is decided up front with the engineer; see
 > [test-strategy.md](test-strategy.md). This doc is how you write the e2e spec

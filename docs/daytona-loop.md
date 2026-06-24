@@ -12,6 +12,14 @@ commit ──► boot warm BASE snapshot ──► inject just-committed source
         ──► pull report + artifacts ──► tear sandbox down ──► PASS / FAIL
 ```
 
+> **What the loop runs is _integration_ testing, not full e2e.** Note the "S3
+> mock" in the diagram: the loop boots the app with its external services
+> **mocked**, so it proves your seams against stand-in dependencies, scoped to
+> what the commit changed — deterministic, key-free, fast. A **full e2e** run
+> (nothing mocked, real providers) is a deliberate, separate gated tier off this
+> hot path. The distinction — and why mocking is what makes the loop integration
+> by construction — is in [integration-vs-e2e.md](integration-vs-e2e.md).
+
 ## Quick start
 
 ```bash
