@@ -6,6 +6,11 @@ alongside (or before) the feature, make it green locally, and the Daytona
 per-commit loop re-runs the same tests in a sandbox and feeds artifacts back on
 failure.
 
+> Not every card needs an e2e spec — which tests a card needs (unit, e2e, or a
+> one-off "did it deploy?" check) is decided up front with the engineer; see
+> [test-strategy.md](test-strategy.md). This doc is how you write the e2e spec
+> **when the card calls for one.**
+
 ## Where tests live
 
 ```
